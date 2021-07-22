@@ -90,9 +90,6 @@ public class ConfigUtilities {
       mappedYaml = result.mappedYaml();
     }
 
-    // todo remove
-    result.lines().forEach(System.out::println);
-
     ConfigLoader loader = new ConfigLoader();
     return loader.load(mappedYaml, mapTo);
   }

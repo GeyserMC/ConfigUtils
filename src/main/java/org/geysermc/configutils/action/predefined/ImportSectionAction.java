@@ -16,7 +16,6 @@ import org.geysermc.configutils.file.template.TemplateReader;
  * the provided section at line 10 of the other config, and `>>|` is used to define the end of the
  * section to add.
  */
-// todo make a separate class that doesn't have the LastImportSection thing
 public class ImportSectionAction implements SingleAction, Storable, Singleton, Unfinished {
   private int line;
 
