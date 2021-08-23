@@ -8,8 +8,8 @@ import org.geysermc.configutils.action.storage.Storable;
 import org.geysermc.configutils.action.storage.Storables;
 import org.geysermc.configutils.action.storage.Unfinished;
 import org.geysermc.configutils.action.storage.predefined.ReadConfigsStorage;
-import org.geysermc.configutils.parser.placeholder.Placeholders;
 import org.geysermc.configutils.file.template.TemplateReader;
+import org.geysermc.configutils.parser.placeholder.Placeholders;
 
 public class DefineImportAction implements SingleAction, Storable {
   private String templateName;
@@ -44,6 +44,7 @@ public class DefineImportAction implements SingleAction, Storable {
     templateName = strippedLine;
     try {
       lines = templateReader.readLines(templateName);
+      //todo allow the parent config to be a config with actions as well
     } catch (Exception e) {
       return ActionResult.failed(String.format(
           "Unable to read import called '%s', does it exist?",

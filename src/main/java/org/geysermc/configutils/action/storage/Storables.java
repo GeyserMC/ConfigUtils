@@ -1,5 +1,8 @@
 package org.geysermc.configutils.action.storage;
 
+import it.unimi.dsi.fastutil.Pair;
+import it.unimi.dsi.fastutil.ints.IntObjectImmutablePair;
+import it.unimi.dsi.fastutil.ints.IntObjectPair;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -11,7 +14,6 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.geysermc.configutils.util.Pair;
 
 public final class Storables {
   private final Map<Class<? extends Storable>, List<Storable>> storables = new HashMap<>();
@@ -157,27 +159,27 @@ public final class Storables {
       return Collections.emptyList();
     }
 
-    List<Pair<Integer, Unfinished>> matches = new ArrayList<>();
+    List<IntObjectPair<Unfinished>> matches = new ArrayList<>();
     int nextMatchIndex = items.length;
 
-    main:for (Entry<Class<? extends Storable>, List<Unfinished>> entry : notFinished.entrySet()) {
+    main: for (Entry<Class<? extends Storable>, List<Unfinished>> entry : notFinished.entrySet()) {
       List<Unfinished> unfinisheds = entry.getValue();
       if (unfinisheds != null && !unfinisheds.isEmpty()) {
 
         for (int i = 0; i < items.length; i++) {
           Class<? extends Unfinished> item = items[i];
           if (item.equals(entry.getKey())) {
-            matches.add(new Pair<>(i, unfinisheds.get(0)));
+            matches.add(new IntObjectImmutablePair<>(i, unfinisheds.get(0)));
             continue main;
           }
         }
-        matches.add(new Pair<>(nextMatchIndex++, unfinisheds.get(0)));
+        matches.add(new IntObjectImmutablePair<>(nextMatchIndex++, unfinisheds.get(0)));
       }
     }
 
     return matches.stream()
-        .sorted(Comparator.comparing(Pair::x))
-        .map(Pair::y)
+        .sorted(Comparator.comparing(Pair::left))
+        .map(Pair::right)
         .collect(Collectors.toList());
   }
 }

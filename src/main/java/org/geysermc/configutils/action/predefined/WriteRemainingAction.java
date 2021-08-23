@@ -7,8 +7,8 @@ import org.geysermc.configutils.action.SingleAction;
 import org.geysermc.configutils.action.predefined.ImportSectionAction.LastImportSection;
 import org.geysermc.configutils.action.storage.Storables;
 import org.geysermc.configutils.action.storage.Unfinished;
-import org.geysermc.configutils.parser.placeholder.Placeholders;
 import org.geysermc.configutils.file.template.TemplateReader;
+import org.geysermc.configutils.parser.placeholder.Placeholders;
 
 public class WriteRemainingAction implements SingleAction {
   @Override

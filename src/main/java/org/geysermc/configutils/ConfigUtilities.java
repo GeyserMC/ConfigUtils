@@ -12,15 +12,15 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.configutils.action.Action;
 import org.geysermc.configutils.action.predefined.PredefinedGroup;
 import org.geysermc.configutils.action.register.RegisteredActions;
+import org.geysermc.configutils.file.codec.FileCodec;
+import org.geysermc.configutils.file.template.TemplateReader;
 import org.geysermc.configutils.loader.ConfigLoader;
 import org.geysermc.configutils.parser.TemplateParseResult;
 import org.geysermc.configutils.parser.TemplateParser;
 import org.geysermc.configutils.parser.placeholder.Placeholders;
 import org.geysermc.configutils.updater.ConfigUpdater;
+import org.geysermc.configutils.updater.change.Changes;
 import org.geysermc.configutils.updater.file.ConfigFileUpdaterResult;
-import org.geysermc.configutils.updater.renames.Renames;
-import org.geysermc.configutils.file.codec.FileCodec;
-import org.geysermc.configutils.file.template.TemplateReader;
 import org.yaml.snakeyaml.Yaml;
 
 public class ConfigUtilities {
@@ -30,7 +30,7 @@ public class ConfigUtilities {
   private final String templateFile;
   private final String configVersionName;
   private final RegisteredActions actions;
-  private final Renames renames;
+  private final Changes changes;
   private final Set<String> copyDirectly;
   private final Placeholders placeholders;
 
@@ -43,7 +43,7 @@ public class ConfigUtilities {
       @NonNull String templateFile,
       @NonNull String configVersionName,
       @NonNull RegisteredActions actions,
-      @NonNull Renames renames,
+      @NonNull Changes changes,
       @NonNull Set<String> copyDirectly,
       @NonNull Placeholders placeholders,
       boolean saveConfigAutomatically) {
@@ -53,7 +53,7 @@ public class ConfigUtilities {
     this.templateFile = Objects.requireNonNull(templateFile);
     this.configVersionName = Objects.requireNonNull(configVersionName);
     this.actions = Objects.requireNonNull(actions);
-    this.renames = Objects.requireNonNull(renames);
+    this.changes = Objects.requireNonNull(changes);
     this.copyDirectly = Objects.requireNonNull(copyDirectly);
     this.placeholders = Objects.requireNonNull(placeholders);
 
@@ -134,7 +134,7 @@ public class ConfigUtilities {
 
     ConfigFileUpdaterResult result =
         new ConfigUpdater()
-            .update(currentConfig, configVersionName, parseResult, renames, copyDirectly);
+            .update(currentConfig, configVersionName, parseResult, changes, copyDirectly);
 
     if (result.succeeded()) {
       saveConfig(result.lines());
@@ -162,7 +162,7 @@ public class ConfigUtilities {
     private String configFile;
     private String templateFile;
     private String configVersionName = "config-version";
-    private Renames renames;
+    private Changes changes;
 
     private boolean saveConfigAutomatically = true;
 
@@ -213,8 +213,8 @@ public class ConfigUtilities {
     }
 
     @NonNull
-    public Builder renames(@NonNull Renames renames) {
-      this.renames = Objects.requireNonNull(renames);
+    public Builder changes(@NonNull Changes changes) {
+      this.changes = Objects.requireNonNull(changes);
       return this;
     }
 
@@ -256,7 +256,7 @@ public class ConfigUtilities {
           templateFile,
           configVersionName,
           actions,
-          renames,
+          changes,
           copyDirectly,
           placeholders,
           saveConfigAutomatically);

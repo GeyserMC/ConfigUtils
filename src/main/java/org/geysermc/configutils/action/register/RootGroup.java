@@ -9,7 +9,8 @@ import org.geysermc.configutils.action.ActionGroup;
 public final class RootGroup extends ActionGroup {
   private final Set<Action> rootActions = new HashSet<>();
 
-  RootGroup() {}
+  RootGroup() {
+  }
 
   @Override
   public @NonNull String groupPrefix() {

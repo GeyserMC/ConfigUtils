@@ -1,10 +1,11 @@
 package org.geysermc.configutils.action;
 
+import it.unimi.dsi.fastutil.Pair;
+import it.unimi.dsi.fastutil.objects.ObjectObjectImmutablePair;
 import java.util.Objects;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.configutils.action.register.RootGroup;
-import org.geysermc.configutils.util.Pair;
 
 public abstract class ActionGroup implements Action {
   @NonNull
@@ -25,7 +26,7 @@ public abstract class ActionGroup implements Action {
 
       if (child instanceof SingleAction) {
         if (((SingleAction) child).actionPrefix() == line.charAt(0)) {
-          return new Pair<>(line.substring(1), child);
+          return new ObjectObjectImmutablePair<>(line.substring(1), child);
         }
         continue;
       }

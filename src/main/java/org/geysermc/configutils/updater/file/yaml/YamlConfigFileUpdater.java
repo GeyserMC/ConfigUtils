@@ -1,5 +1,7 @@
 package org.geysermc.configutils.updater.file.yaml;
 
+import it.unimi.dsi.fastutil.ints.IntIntImmutablePair;
+import it.unimi.dsi.fastutil.ints.IntIntPair;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -7,15 +9,15 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.geysermc.configutils.updater.change.Changes;
 import org.geysermc.configutils.updater.file.ConfigFileUpdater;
 import org.geysermc.configutils.updater.file.ConfigFileUpdaterResult;
-import org.geysermc.configutils.util.Pair;
 import org.geysermc.configutils.util.Utils;
 
 public class YamlConfigFileUpdater implements ConfigFileUpdater {
   public ConfigFileUpdaterResult update(
       Map<String, Object> currentVersion,
-      Map<String, String> renames,
+      Changes changes,
       Collection<String> ignore,
       Collection<String> copyDirectly,
       List<String> configTemplate) {
@@ -26,9 +28,9 @@ public class YamlConfigFileUpdater implements ConfigFileUpdater {
     List<String> changed = new ArrayList<>();
 
     int linesRead = update(
-        currentVersion, renames, ignore, copyDirectly, configTemplate,
+        currentVersion, changes, ignore, copyDirectly, configTemplate,
         0, 0, 0, "", 0, updated, newVersion, notFound, changed
-    ).x();
+    ).leftInt();
 
     if (configTemplate.size() != linesRead) {
       return ConfigFileUpdaterResult.failed(new IllegalStateException(String.format(
@@ -39,9 +41,9 @@ public class YamlConfigFileUpdater implements ConfigFileUpdater {
     return ConfigFileUpdaterResult.ok(updated, newVersion, notFound, changed);
   }
 
-  private Pair<Integer, Integer> update(
+  private IntIntPair update(
       Map<String, Object> currentVersion,
-      Map<String, String> renames,
+      Changes changes,
       Collection<String> ignore,
       Collection<String> copyDirectly,
       List<String> configTemplate,
@@ -75,12 +77,12 @@ public class YamlConfigFileUpdater implements ConfigFileUpdater {
 
       // end of subcategory
       if (parents > 0 && spaces >= lineSpaces.length()) {
-        return new Pair<>(i - startIndex, indexOffset);
+        return new IntIntImmutablePair(i - startIndex, indexOffset);
       }
 
       if (shouldCopyDirectly && !hasCopiedDirectly) {
         String correctName = path.substring(0, path.length() - 1);
-        String oldName = getRenamedName(renames, correctName);
+        String oldName = changes.oldKeyName(correctName);
         Object value = getCurrentVersion(currentVersion, oldName);
 
         // this is awkward. You want me to copy a non-existing section
@@ -117,13 +119,13 @@ public class YamlConfigFileUpdater implements ConfigFileUpdater {
           String subcategoryName = trimmed.substring(0, splitIndex);
           String newPath = path + subcategoryName + ".";
 
-          Pair<Integer, Integer> result = update(
-              currentVersion, renames, ignore, copyDirectly, configTemplate, i + 1, indexOffset,
+          IntIntPair result = update(
+              currentVersion, changes, ignore, copyDirectly, configTemplate, i + 1, indexOffset,
               lineSpaces.length(), newPath, parents + 1, updated, newVersion, notFound, changed
           );
 
-          i += result.x();
-          indexOffset = result.y();
+          i += result.leftInt();
+          indexOffset = result.rightInt();
           continue;
         }
 
@@ -136,7 +138,7 @@ public class YamlConfigFileUpdater implements ConfigFileUpdater {
           continue;
         }
 
-        String oldName = getRenamedName(renames, correctName);
+        String oldName = changes.oldKeyName(correctName);
         Object value = getCurrentVersion(currentVersion, oldName);
 
         // use default value if the key doesn't exist in the current version
@@ -145,19 +147,21 @@ public class YamlConfigFileUpdater implements ConfigFileUpdater {
           continue;
         }
 
-        if (value instanceof String) {
-          String v = (String) value;
-          if (!v.startsWith("\"") || !v.endsWith("\"")) {
-            value = "\"" + value + "\"";
-          }
-        }
+        value = changes.newValue(correctName, value);
+
+//        if (value instanceof String) {
+//          String v = (String) value;
+//          if (!v.startsWith("\"") || !v.endsWith("\"")) {
+//            value = "\"" + value + "\"";
+//          }
+//        }
 
         changed.add(correctName);
         updated.set(i + indexOffset, lineSpaces + name + ": " + value);
         setNewVersion(newVersion, correctName, value);
       }
     }
-    return new Pair<>(configTemplate.size(), indexOffset);
+    return new IntIntImmutablePair(configTemplate.size(), indexOffset);
   }
 
   private boolean isStartSubcategory(String trimmed, int splitIndex) {
@@ -178,17 +182,6 @@ public class YamlConfigFileUpdater implements ConfigFileUpdater {
     return true;
   }
 
-  private String getRenamedName(Map<String, String> renames, String correctName) {
-    // allow multiple renames
-    String tempName;
-    String oldName = correctName;
-    do {
-      tempName = oldName;
-      oldName = renames.getOrDefault(oldName, oldName);
-    } while (!oldName.equals(tempName));
-    return oldName;
-  }
-
   private Object getCurrentVersion(Map<String, Object> currentVersion, String correctName) {
     Map<String, Object> curSubcategory = currentVersion;
     String[] parts = correctName.split("\\.");
@@ -207,7 +200,7 @@ public class YamlConfigFileUpdater implements ConfigFileUpdater {
     String[] parts = correctName.split("\\.");
     for (int i = 0; i < parts.length - 1; i++) {
       Map<String, Object> newSubcategory = (Map<String, Object>) curSubcategory.get(parts[i]);
-//      // can be null if the category doesn't exist in the current version
+      // can be null if the category doesn't exist in the current version
       if (newSubcategory == null) {
         newSubcategory = new HashMap<>();
         curSubcategory.put(parts[i], newSubcategory);
@@ -239,7 +232,7 @@ public class YamlConfigFileUpdater implements ConfigFileUpdater {
       }
 
       //todo add Set/List support
-      updated.add(index + indexOffset, prefix +entry.getKey() + ": " + entry.getValue());
+      updated.add(index + indexOffset, prefix + entry.getKey() + ": " + entry.getValue());
       setNewVersion(newVersion, path + entry.getKey(), entry.getValue());
       indexOffset++;
     }

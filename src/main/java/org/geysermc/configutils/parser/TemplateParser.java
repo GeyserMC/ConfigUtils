@@ -1,5 +1,6 @@
 package org.geysermc.configutils.parser;
 
+import it.unimi.dsi.fastutil.Pair;
 import java.util.ArrayList;
 import java.util.List;
 import org.geysermc.configutils.action.Action;
@@ -9,9 +10,8 @@ import org.geysermc.configutils.action.register.RegisteredActions;
 import org.geysermc.configutils.action.storage.Storables;
 import org.geysermc.configutils.action.storage.Unfinished;
 import org.geysermc.configutils.action.storage.predefined.ReadConfigsStorage;
-import org.geysermc.configutils.parser.placeholder.Placeholders;
 import org.geysermc.configutils.file.template.TemplateReader;
-import org.geysermc.configutils.util.Pair;
+import org.geysermc.configutils.parser.placeholder.Placeholders;
 
 public class TemplateParser {
   private final TemplateReader reader;
@@ -47,16 +47,16 @@ public class TemplateParser {
         continue;
       }
 
-      String strippedLine = action.x();
+      String strippedLine = action.left();
 
-      if (!(action.y() instanceof SingleAction)) {
+      if (!(action.right() instanceof SingleAction)) {
         return TemplateParseResult.failed(
             new IllegalStateException("Action should be an instance of SingleAction")
         );
       }
 
       ActionResult result =
-          ((SingleAction) action.y()).handle(strippedLine, storables, placeholders, reader);
+          ((SingleAction) action.right()).handle(strippedLine, storables, placeholders, reader);
 
       if (!result.succeeded()) {
         return TemplateParseResult.failed(

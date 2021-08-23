@@ -42,10 +42,11 @@ public class ConfigLoader {
 
           if (field.getType().isEnum()) {
             String upperCase = ((String) value).toUpperCase(Locale.ROOT);
+            Class<? extends Enum> type = (Class<? extends Enum<?>>) field.getType();
             try {
-              value = Enum.valueOf((Class<? extends Enum>) field.getType(), upperCase);
+              value = Enum.valueOf(type, upperCase);
             } catch (IllegalArgumentException ignored) {
-              value = Enum.valueOf((Class<? extends Enum>) field.getType(), upperCase.replace('_', '-'));
+              value = Enum.valueOf(type, upperCase.replace('_', '-'));
             }
           }
 

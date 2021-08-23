@@ -2,13 +2,12 @@ package org.geysermc.configutils.updater;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.geysermc.configutils.parser.TemplateParseResult;
+import org.geysermc.configutils.updater.change.Changes;
 import org.geysermc.configutils.updater.file.ConfigFileUpdaterResult;
 import org.geysermc.configutils.updater.file.yaml.YamlConfigFileUpdater;
-import org.geysermc.configutils.updater.renames.Renames;
 import org.geysermc.configutils.util.Utils;
 import org.yaml.snakeyaml.Yaml;
 
@@ -17,7 +16,7 @@ public class ConfigUpdater {
       List<String> currentConfig,
       String configVersionName,
       TemplateParseResult parseResult,
-      Renames renames,
+      Changes changes,
       Collection<String> copyDirectly,
       String... ignore) {
 
@@ -78,13 +77,7 @@ public class ConfigUpdater {
       ));
     }
 
-    Map<String, String> renamesMap = new HashMap<>();
-    while (++version <= latestVersion) {
-      Map<String, String> versionRenames = renames.get(version);
-      if (versionRenames != null) {
-        renamesMap.putAll(versionRenames);
-      }
-    }
+    changes.select(version, latestVersion);
 
     // updating config
     StringBuilder currentConfigBuilder = new StringBuilder();
@@ -95,7 +88,7 @@ public class ConfigUpdater {
     Map<String, Object> currentConfigMap = new Yaml().load(currentConfigBuilder.toString());
 
     return new YamlConfigFileUpdater().update(
-        currentConfigMap, renamesMap, Utils.merge(ignore, configVersionName),
+        currentConfigMap, changes, Utils.merge(ignore, configVersionName),
         copyDirectly, parseResult.templateLines()
     );
   }
