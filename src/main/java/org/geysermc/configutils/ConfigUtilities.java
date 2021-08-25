@@ -111,9 +111,7 @@ public class ConfigUtilities {
   }
 
   public TemplateParseResult create() {
-    TemplateParseResult result =
-        new TemplateParser(templateReader, actions).parseTemplate(templateFile, placeholders);
-
+    TemplateParseResult result = parseTemplate();
     if (result.succeeded()) {
       saveConfig(result.templateLines());
     }
@@ -126,8 +124,12 @@ public class ConfigUtilities {
     return update0(currentConfig);
   }
 
+  private TemplateParseResult parseTemplate() {
+    return new TemplateParser(templateReader, actions).parseTemplate(templateFile, placeholders);
+  }
+
   private ConfigFileUpdaterResult update0(List<String> currentConfig) {
-    TemplateParseResult parseResult = create();
+    TemplateParseResult parseResult = parseTemplate();
     if (!parseResult.succeeded()) {
       return ConfigFileUpdaterResult.failed(parseResult.error());
     }
@@ -153,7 +155,7 @@ public class ConfigUtilities {
   }
 
   public static final class Builder {
-    private final RegisteredActions actions;
+    private final RegisteredActions actions = new RegisteredActions();
     private final Placeholders placeholders = new Placeholders();
     private final Set<String> copyDirectly = new HashSet<>();
 
@@ -165,9 +167,9 @@ public class ConfigUtilities {
     private Changes changes;
 
     private boolean saveConfigAutomatically = true;
+    private boolean defaultActions = true;
 
     private Builder() {
-      actions = new RegisteredActions().registerAction(new PredefinedGroup());
     }
 
     @NonNull
@@ -248,7 +250,16 @@ public class ConfigUtilities {
     }
 
     @NonNull
+    public Builder removeDefaultActions() {
+      this.defaultActions = false;
+      return this;
+    }
+
+    @NonNull
     public ConfigUtilities build() {
+      if (defaultActions) {
+        actions.registerAction(new PredefinedGroup());
+      }
       return new ConfigUtilities(
           templateReader,
           fileCodec,

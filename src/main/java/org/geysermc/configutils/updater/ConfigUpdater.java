@@ -56,7 +56,7 @@ public class ConfigUpdater {
       ));
     }
 
-    // receiving latest version
+    // search for the config version key
     int latestVersion = 0;
     for (String configLine : parseResult.templateLines()) {
       if (configLine.startsWith(configVersionName + ':')) {
@@ -65,27 +65,26 @@ public class ConfigUpdater {
       }
     }
 
-    if (version == latestVersion) {
-      return ConfigFileUpdaterResult.ok(
-          parseResult.templateLines(), null, Collections.emptySet(), Collections.emptyList()
-      );
-    }
-
     if (version > latestVersion) {
       return ConfigFileUpdaterResult.failed(new IllegalStateException(
           "Cannot update a configuration that is newer than the latest available config version"
       ));
     }
 
-    changes.select(version, latestVersion);
-
-    // updating config
     StringBuilder currentConfigBuilder = new StringBuilder();
     for (String line : currentConfig) {
       currentConfigBuilder.append(line).append(System.lineSeparator());
     }
-
     Map<String, Object> currentConfigMap = new Yaml().load(currentConfigBuilder.toString());
+
+    if (version == latestVersion) {
+      return ConfigFileUpdaterResult.ok(
+          currentConfig, currentConfigMap, Collections.emptySet(), Collections.emptyList()
+      );
+    }
+
+    // let's update the config
+    changes.select(version, latestVersion);
 
     return new YamlConfigFileUpdater().update(
         currentConfigMap, changes, Utils.merge(ignore, configVersionName),
