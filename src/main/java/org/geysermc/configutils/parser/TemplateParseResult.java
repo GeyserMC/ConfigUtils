@@ -6,7 +6,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.configutils.action.storage.Storables;
 
-public class TemplateParseResult {
+public final class TemplateParseResult {
   private final List<String> lines;
   private final Storables storables;
   private final Throwable error;
