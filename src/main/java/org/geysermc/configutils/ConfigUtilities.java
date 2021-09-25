@@ -15,6 +15,7 @@ import org.geysermc.configutils.action.register.RegisteredActions;
 import org.geysermc.configutils.file.codec.FileCodec;
 import org.geysermc.configutils.file.template.TemplateReader;
 import org.geysermc.configutils.loader.ConfigLoader;
+import org.geysermc.configutils.loader.validate.Validations;
 import org.geysermc.configutils.parser.TemplateParseResult;
 import org.geysermc.configutils.parser.TemplateParser;
 import org.geysermc.configutils.parser.placeholder.Placeholders;
@@ -33,6 +34,7 @@ public class ConfigUtilities {
   private final Changes changes;
   private final Set<String> copyDirectly;
   private final Placeholders placeholders;
+  private final Validations validations;
 
   private final boolean saveConfigAutomatically;
 
@@ -46,6 +48,7 @@ public class ConfigUtilities {
       @NonNull Changes changes,
       @NonNull Set<String> copyDirectly,
       @NonNull Placeholders placeholders,
+      @NonNull Validations validations,
       boolean saveConfigAutomatically) {
     this.templateReader = Objects.requireNonNull(templateReader);
     this.fileCodec = Objects.requireNonNull(fileCodec);
@@ -56,6 +59,7 @@ public class ConfigUtilities {
     this.changes = Objects.requireNonNull(changes);
     this.copyDirectly = Objects.requireNonNull(copyDirectly);
     this.placeholders = Objects.requireNonNull(placeholders);
+    this.validations = Objects.requireNonNull(validations);
 
     this.saveConfigAutomatically = saveConfigAutomatically;
   }
@@ -91,7 +95,7 @@ public class ConfigUtilities {
     }
 
     ConfigLoader loader = new ConfigLoader();
-    return loader.load(mappedYaml, mapTo);
+    return loader.load(mappedYaml, mapTo, validations);
   }
 
   public ConfigFileUpdaterResult createOrUpdate() {
@@ -165,6 +169,7 @@ public class ConfigUtilities {
     private String templateFile;
     private String configVersionName = "config-version";
     private Changes changes;
+    private Validations validations;
 
     private boolean saveConfigAutomatically = true;
     private boolean defaultActions = true;
@@ -244,6 +249,12 @@ public class ConfigUtilities {
     }
 
     @NonNull
+    public Builder validations(@NonNull Validations validations) {
+      this.validations = Objects.requireNonNull(validations);
+      return this;
+    }
+
+    @NonNull
     public Builder saveConfigAutomatically(boolean saveConfigAutomatically) {
       this.saveConfigAutomatically = saveConfigAutomatically;
       return this;
@@ -260,6 +271,10 @@ public class ConfigUtilities {
       if (defaultActions) {
         actions.registerAction(new PredefinedGroup());
       }
+
+      Validations notNullValidations =
+          validations != null ? validations : Validations.builder().build();
+
       return new ConfigUtilities(
           templateReader,
           fileCodec,
@@ -270,7 +285,9 @@ public class ConfigUtilities {
           changes,
           copyDirectly,
           placeholders,
-          saveConfigAutomatically);
+          notNullValidations,
+          saveConfigAutomatically
+      );
     }
   }
 }
