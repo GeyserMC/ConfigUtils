@@ -106,6 +106,11 @@ public class ConfigLoader {
       }
       current = current.getSuperclass();
     }
+
+    if (instance instanceof PostInitializeCallback) {
+      ((PostInitializeCallback) instance).postInitialize();
+    }
+
     return instance;
   }
 
