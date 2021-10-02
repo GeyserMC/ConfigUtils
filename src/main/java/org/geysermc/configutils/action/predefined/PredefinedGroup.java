@@ -14,7 +14,8 @@ public class PredefinedGroup extends ActionGroup {
   @Override
   public @NonNull Action[] children() {
     return new Action[] {
-      new DefineImportAction(), new ImportSectionAction(), new WriteRemainingAction()
+      new DefineImportAction(), new ImportSectionAction(),
+      new WriteRemainingAction(), new CommentAction()
     };
   }
 }
