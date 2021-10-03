@@ -1,6 +1,7 @@
 package org.geysermc.configutils.loader.callback;
 
 import java.util.Objects;
+import java.util.concurrent.Callable;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
@@ -29,5 +30,17 @@ public class CallbackResult {
 
   public boolean success() {
     return error == null;
+  }
+
+  public CallbackResult ifSucceeded(Callable<CallbackResult> onSucceeded) {
+    try {
+      CallbackResult result = onSucceeded.call();
+      return result != null ? result : this;
+    } catch (Exception exception) {
+      return failed(String.format(
+          "An unknown error happened while executing ifSucceeded: %s",
+          exception.getMessage()
+      ));
+    }
   }
 }
