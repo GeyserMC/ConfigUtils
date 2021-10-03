@@ -2,11 +2,11 @@ package org.geysermc.configutils.loader.validate;
 
 import java.util.Objects;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.configutils.exception.ImproperConfigValueException;
 
 public class ValidationResult {
   private final ImproperConfigValueException error;
-
   private final Object value;
 
   private ValidationResult(ImproperConfigValueException error, Object value) {
@@ -25,10 +25,12 @@ public class ValidationResult {
     return new ValidationResult(new ImproperConfigValueException(errorMessage), null);
   }
 
+  @Nullable
   public ImproperConfigValueException error() {
     return error;
   }
 
+  @Nullable
   public Object value() {
     return value;
   }

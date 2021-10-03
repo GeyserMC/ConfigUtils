@@ -7,7 +7,11 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.configutils.exception.ImproperConfigValueException;
+import org.geysermc.configutils.loader.callback.CallbackResult;
+import org.geysermc.configutils.loader.callback.GenericPostInitializeCallback;
+import org.geysermc.configutils.loader.callback.PostInitializeCallback;
 import org.geysermc.configutils.loader.validate.ValidationResult;
 import org.geysermc.configutils.loader.validate.Validations;
 
@@ -16,16 +20,18 @@ public class ConfigLoader {
   public <T> T load(
       @NonNull Map<String, Object> data,
       @NonNull Class<T> mapTo,
-      @NonNull Validations validations) {
-    return load("", data, mapTo, validations);
+      @NonNull Validations validations,
+      @Nullable Object postInitializeCallbackArgument) {
+    return load("", data, mapTo, validations, postInitializeCallbackArgument);
   }
 
   @NonNull
-  public <T> T load(
+  protected <T> T load(
       @NonNull String keyPath,
       @NonNull Map<String, Object> data,
       @NonNull Class<T> mapTo,
-      @NonNull Validations validations) {
+      @NonNull Validations validations,
+      @Nullable Object callbackArgument) {
 
     Objects.requireNonNull(data);
     Objects.requireNonNull(mapTo);
@@ -58,7 +64,10 @@ public class ConfigLoader {
 
           // load subclass
           if (value instanceof Map && !field.getType().isAssignableFrom(Map.class)) {
-            value = load(fullKey + '.', (Map<String, Object>) value, field.getType(), validations);
+            value = load(
+                fullKey + '.', (Map<String, Object>) value, field.getType(),
+                validations, callbackArgument
+            );
           }
 
           if (field.getType().isEnum()) {
@@ -73,7 +82,7 @@ public class ConfigLoader {
 
           try {
             ValidationResult result = validations.validate(fullKey, value);
-            if (!result.success()) {
+            if (result.error() != null) {
               result.error().messagePrefix(String.format(
                   "Config option %s does not meet the criteria", fullKey
               ));
@@ -107,8 +116,30 @@ public class ConfigLoader {
       current = current.getSuperclass();
     }
 
-    if (instance instanceof PostInitializeCallback) {
-      ((PostInitializeCallback) instance).postInitialize();
+    CallbackResult result = null;
+
+    try_block:
+    try {
+      if (instance instanceof GenericPostInitializeCallback) {
+        //noinspection unchecked,rawtypes
+        result = ((GenericPostInitializeCallback) instance).postInitialize(callbackArgument);
+        if (!result.success()) {
+          // don't throw the exception in the try/catch block
+          break try_block;
+        }
+      }
+
+      if (instance instanceof PostInitializeCallback) {
+        result = ((PostInitializeCallback) instance).postInitialize();
+      }
+    } catch (Exception exception) {
+      throw new IllegalStateException(
+          "An unknown error happened while executing a post-initialize callback", exception
+      );
+    }
+
+    if (result != null && !result.success()) {
+      throw result.error();
     }
 
     return instance;

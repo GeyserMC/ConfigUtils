@@ -9,6 +9,7 @@ import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.configutils.action.Action;
 import org.geysermc.configutils.action.predefined.PredefinedGroup;
 import org.geysermc.configutils.action.register.RegisteredActions;
@@ -35,6 +36,7 @@ public class ConfigUtilities {
   private final Set<String> copyDirectly;
   private final Placeholders placeholders;
   private final Validations validations;
+  private final Object postInitializeCallbackArgument;
 
   private final boolean saveConfigAutomatically;
 
@@ -49,6 +51,7 @@ public class ConfigUtilities {
       @NonNull Set<String> copyDirectly,
       @NonNull Placeholders placeholders,
       @NonNull Validations validations,
+      @Nullable Object postInitializeCallbackArgument,
       boolean saveConfigAutomatically) {
     this.templateReader = Objects.requireNonNull(templateReader);
     this.fileCodec = Objects.requireNonNull(fileCodec);
@@ -60,6 +63,7 @@ public class ConfigUtilities {
     this.copyDirectly = Objects.requireNonNull(copyDirectly);
     this.placeholders = Objects.requireNonNull(placeholders);
     this.validations = Objects.requireNonNull(validations);
+    this.postInitializeCallbackArgument = postInitializeCallbackArgument;
 
     this.saveConfigAutomatically = saveConfigAutomatically;
   }
@@ -95,7 +99,7 @@ public class ConfigUtilities {
     }
 
     ConfigLoader loader = new ConfigLoader();
-    return loader.load(mappedYaml, mapTo, validations);
+    return loader.load(mappedYaml, mapTo, validations, postInitializeCallbackArgument);
   }
 
   public ConfigFileUpdaterResult createOrUpdate() {
@@ -170,6 +174,7 @@ public class ConfigUtilities {
     private String configVersionName = "config-version";
     private Changes changes;
     private Validations validations;
+    private Object postInitializeCallbackArgument;
 
     private boolean saveConfigAutomatically = true;
     private boolean defaultActions = true;
@@ -255,6 +260,12 @@ public class ConfigUtilities {
     }
 
     @NonNull
+    public Builder postInitializeCallbackArgument(@Nullable Object callbackArgument) {
+      this.postInitializeCallbackArgument = callbackArgument;
+      return this;
+    }
+
+    @NonNull
     public Builder saveConfigAutomatically(boolean saveConfigAutomatically) {
       this.saveConfigAutomatically = saveConfigAutomatically;
       return this;
@@ -286,6 +297,7 @@ public class ConfigUtilities {
           copyDirectly,
           placeholders,
           notNullValidations,
+          postInitializeCallbackArgument,
           saveConfigAutomatically
       );
     }

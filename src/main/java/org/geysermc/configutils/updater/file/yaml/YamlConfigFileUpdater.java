@@ -149,13 +149,6 @@ public class YamlConfigFileUpdater implements ConfigFileUpdater {
 
         value = changes.newValue(correctName, value);
 
-//        if (value instanceof String) {
-//          String v = (String) value;
-//          if (!v.startsWith("\"") || !v.endsWith("\"")) {
-//            value = "\"" + value + "\"";
-//          }
-//        }
-
         changed.add(correctName);
         updated.set(i + indexOffset, lineSpaces + name + ": " + value);
         setNewVersion(newVersion, correctName, value);
