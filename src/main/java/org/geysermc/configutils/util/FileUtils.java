@@ -49,6 +49,12 @@ public class FileUtils {
 
   public static boolean writeToPath(Path path, List<String> lines) {
     try {
+      Files.createDirectories(path);
+    } catch (IOException e) {
+      throw new IllegalStateException("Failed to create directories for " + path, e);
+    }
+
+    try {
       Files.write(path, lines);
       return true;
     } catch (IOException e) {
