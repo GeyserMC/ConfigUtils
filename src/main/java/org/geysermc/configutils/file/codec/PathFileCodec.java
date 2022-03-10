@@ -7,20 +7,27 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.configutils.util.FileUtils;
 
 public final class PathFileCodec implements FileCodec {
-  private static final PathFileCodec instance = new PathFileCodec(null);
+  private static final PathFileCodec DEFAULT_INSTANCE = new PathFileCodec(null);
 
-  private final String path;
+  private final Path path;
 
-  private PathFileCodec(@Nullable String path) {
+  private PathFileCodec(@Nullable Path path) {
     this.path = path;
   }
 
   public static PathFileCodec instance() {
-    return instance;
+    return DEFAULT_INSTANCE;
+  }
+
+  public static PathFileCodec of(Path path) {
+    return new PathFileCodec(path);
   }
 
   public static PathFileCodec of(String path) {
-    return new PathFileCodec(path);
+    if (path != null) {
+      return of(Paths.get(path));
+    }
+    return instance();
   }
 
   @Override
@@ -35,7 +42,7 @@ public final class PathFileCodec implements FileCodec {
 
   private Path path(String configName) {
     if (path != null) {
-      return Paths.get(path, configName);
+      return path.resolve(configName);
     }
     return Paths.get(configName);
   }
