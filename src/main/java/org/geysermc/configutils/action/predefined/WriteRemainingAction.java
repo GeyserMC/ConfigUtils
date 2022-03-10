@@ -28,12 +28,12 @@ public class WriteRemainingAction implements SingleAction {
       Placeholders placeholders,
       TemplateReader templateReader) {
 
-    Unfinished unfinished = storables.getFirstUnfinished(ImportSectionAction.class);
+    Unfinished unfinished = storables.firstUnfinished(ImportSectionAction.class);
     if (unfinished != null) {
       return ActionResult.failed(unfinished.unfinishedMessage(this));
     }
 
-    DefineImportAction defineImport = storables.getFirst(DefineImportAction.class);
+    DefineImportAction defineImport = storables.first(DefineImportAction.class);
     if (defineImport == null) {
       return ActionResult.failed(
           "Cannot write the remaining of a config without defining a config");

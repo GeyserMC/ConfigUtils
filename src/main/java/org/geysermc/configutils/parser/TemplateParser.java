@@ -12,7 +12,7 @@ import org.geysermc.configutils.action.register.RegisteredActions;
 import org.geysermc.configutils.action.storage.Storable;
 import org.geysermc.configutils.action.storage.Storables;
 import org.geysermc.configutils.action.storage.Unfinished;
-import org.geysermc.configutils.action.storage.predefined.ReadConfigsStorage;
+import org.geysermc.configutils.action.storage.predefined.UsedConfigsStorage;
 import org.geysermc.configutils.file.template.TemplateReader;
 import org.geysermc.configutils.parser.placeholder.Placeholders;
 
@@ -43,13 +43,13 @@ public class TemplateParser implements Storable {
     List<String> templateLines = new ArrayList<>();
 
     Storables storables = new Storables();
-    storables.add(new ReadConfigsStorage(templateName));
+    storables.add(new UsedConfigsStorage(templateName));
 
     // allows us to read nested templates
     storables.add(this);
 
     for (String line : lines) {
-      Pair<String, Action> action = actions.getActionFromLine(line);
+      Pair<String, Action> action = actions.actionFromLine(line);
 
       // if the line isn't an action, it'll be stuff like comments and key/value lines
       if (action == null) {
@@ -80,7 +80,7 @@ public class TemplateParser implements Storable {
       }
     }
 
-    List<Unfinished> unfinisheds = storables.getAllUnfinished();
+    List<Unfinished> unfinisheds = storables.allUnfinished();
     if (!unfinisheds.isEmpty()) {
       StringBuilder builder = new StringBuilder();
       for (Unfinished unfinished : unfinisheds) {

@@ -20,16 +20,16 @@ public final class Storables {
   private final Map<Class<? extends Storable>, List<Unfinished>> notFinished = new HashMap<>();
 
   public boolean has(@NonNull Class<? extends Storable> storableType) {
-    return getFirst(storableType) != null;
+    return first(storableType) != null;
   }
 
   public boolean hasMany(@NonNull Class<? extends Storable> storableType) {
-    return getAll(storableType).size() > 1;
+    return all(storableType).size() > 1;
   }
 
   @Nullable
   @SuppressWarnings("unchecked")
-  public <T extends Storable> T getFirst(@NonNull Class<T> storableType) {
+  public <T extends Storable> T first(@NonNull Class<T> storableType) {
     Objects.requireNonNull(storableType);
 
     List<Storable> items = storables.get(storableType);
@@ -41,7 +41,7 @@ public final class Storables {
 
   @NonNull
   @SuppressWarnings("unchecked")
-  public <T extends Storable> List<T> getAll(@NonNull Class<T> storableType) {
+  public <T extends Storable> List<T> all(@NonNull Class<T> storableType) {
     Objects.requireNonNull(storableType);
 
     List<Storable> items = storables.get(storableType);
@@ -108,7 +108,7 @@ public final class Storables {
 
   @SafeVarargs
   @Nullable
-  public final Unfinished getFirstUnfinished(@NonNull Class<? extends Unfinished>... items) {
+  public final Unfinished firstUnfinished(@NonNull Class<? extends Unfinished>... items) {
     Objects.requireNonNull(items);
 
     if (notFinished.isEmpty()) {
@@ -152,7 +152,7 @@ public final class Storables {
 
   @SafeVarargs
   @NonNull
-  public final List<Unfinished> getAllUnfinished(@NonNull Class<Unfinished>... items) {
+  public final List<Unfinished> allUnfinished(@NonNull Class<Unfinished>... items) {
     Objects.requireNonNull(items);
 
     if (notFinished.isEmpty()) {

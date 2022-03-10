@@ -29,7 +29,7 @@ public final class RegisteredActions {
   }
 
   @Nullable
-  public Pair<String, Action> getActionFromLine(@NonNull String line) {
+  public Pair<String, Action> actionFromLine(@NonNull String line) {
     return rootActions.child(line);
   }
 }

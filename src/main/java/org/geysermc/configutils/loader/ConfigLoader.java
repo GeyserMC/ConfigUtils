@@ -52,7 +52,7 @@ public class ConfigLoader {
         int modifiers = field.getModifiers();
         if (!Modifier.isStatic(modifiers) && !Modifier.isTransient(modifiers)) {
 
-          String key = getCorrectName(field.getName());
+          String key = correctName(field.getName());
           String fullKey = keyPath + key;
 
           Object value = data.get(key);
@@ -145,7 +145,7 @@ public class ConfigLoader {
     return instance;
   }
 
-  private String getCorrectName(String fieldName) {
+  private String correctName(String fieldName) {
     // convert sendFloodgateData to send-floodgate-data,
     // which is the style of writing config fields
     StringBuilder propertyBuilder = new StringBuilder();

@@ -9,21 +9,21 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.configutils.action.storage.Singleton;
 import org.geysermc.configutils.action.storage.Storable;
 
-public class ReadConfigsStorage implements Storable, Singleton {
-  private final Set<String> readConfigs = new HashSet<>();
+public class UsedConfigsStorage implements Storable, Singleton {
+  private final Set<String> usedConfigs = new HashSet<>();
 
-  public ReadConfigsStorage(@Nullable String thisConfigFileName) {
+  public UsedConfigsStorage(@Nullable String thisConfigFileName) {
     if (thisConfigFileName != null) {
-      readConfigs.add(thisConfigFileName);
+      usedConfigs.add(thisConfigFileName);
     }
   }
 
-  public void addRead(@NonNull String configFileName) {
-    readConfigs.add(Objects.requireNonNull(configFileName));
+  public void addUsed(@NonNull String configFileName) {
+    usedConfigs.add(Objects.requireNonNull(configFileName));
   }
 
   @NonNull
-  public Set<String> getReadConfigs() {
-    return Collections.unmodifiableSet(readConfigs);
+  public Set<String> usedConfigs() {
+    return Collections.unmodifiableSet(usedConfigs);
   }
 }

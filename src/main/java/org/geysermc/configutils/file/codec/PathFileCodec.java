@@ -25,15 +25,15 @@ public final class PathFileCodec implements FileCodec {
 
   @Override
   public List<String> read(String configName) {
-    return FileUtils.readPath(getPath(configName));
+    return FileUtils.readPath(path(configName));
   }
 
   @Override
   public boolean write(String configName, List<String> lines) {
-    return FileUtils.writeToPath(getPath(configName), lines);
+    return FileUtils.writeToPath(path(configName), lines);
   }
 
-  private Path getPath(String configName) {
+  private Path path(String configName) {
     if (path != null) {
       return Paths.get(path, configName);
     }

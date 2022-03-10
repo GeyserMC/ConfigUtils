@@ -48,12 +48,12 @@ public class ImportSectionAction implements SingleAction, Storable, Singleton, U
 
     // start import section
 
-    Unfinished unfinished = storables.getFirstUnfinished(ImportSectionAction.class);
+    Unfinished unfinished = storables.firstUnfinished(ImportSectionAction.class);
     if (unfinished != null) {
       return ActionResult.failed(unfinished.unfinishedMessage(this));
     }
 
-    DefineImportAction defineImport = storables.getFirst(DefineImportAction.class);
+    DefineImportAction defineImport = storables.first(DefineImportAction.class);
     if (defineImport == null) {
       return ActionResult.failed("Cannot start insert without providing a config to import from");
     }

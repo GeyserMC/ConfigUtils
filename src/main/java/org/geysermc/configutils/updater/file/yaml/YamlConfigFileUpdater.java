@@ -83,7 +83,7 @@ public class YamlConfigFileUpdater implements ConfigFileUpdater {
       if (shouldCopyDirectly && !hasCopiedDirectly) {
         String correctName = path.substring(0, path.length() - 1);
         String oldName = changes.oldKeyName(correctName);
-        Object value = getCurrentVersion(currentVersion, oldName);
+        Object value = currentVersion(currentVersion, oldName);
 
         // this is awkward. You want me to copy a non-existing section
         if (value == null) {
@@ -139,7 +139,7 @@ public class YamlConfigFileUpdater implements ConfigFileUpdater {
         }
 
         String oldName = changes.oldKeyName(correctName);
-        Object value = getCurrentVersion(currentVersion, oldName);
+        Object value = currentVersion(currentVersion, oldName);
 
         // use default value if the key doesn't exist in the current version
         if (value == null) {
@@ -175,7 +175,7 @@ public class YamlConfigFileUpdater implements ConfigFileUpdater {
     return true;
   }
 
-  private Object getCurrentVersion(Map<String, Object> currentVersion, String correctName) {
+  private Object currentVersion(Map<String, Object> currentVersion, String correctName) {
     Map<String, Object> curSubcategory = currentVersion;
     String[] parts = correctName.split("\\.");
     for (int i = 0; i < parts.length - 1; i++) {

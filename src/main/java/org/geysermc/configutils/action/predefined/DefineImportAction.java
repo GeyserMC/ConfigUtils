@@ -7,7 +7,7 @@ import org.geysermc.configutils.action.predefined.ImportSectionAction.LastImport
 import org.geysermc.configutils.action.storage.Storable;
 import org.geysermc.configutils.action.storage.Storables;
 import org.geysermc.configutils.action.storage.Unfinished;
-import org.geysermc.configutils.action.storage.predefined.ReadConfigsStorage;
+import org.geysermc.configutils.action.storage.predefined.UsedConfigsStorage;
 import org.geysermc.configutils.file.template.TemplateReader;
 import org.geysermc.configutils.parser.TemplateParseResult;
 import org.geysermc.configutils.parser.TemplateParser;
@@ -35,7 +35,7 @@ public class DefineImportAction implements SingleAction, Storable {
       Placeholders placeholders,
       TemplateReader templateReader) {
 
-    Unfinished unfinished = storables.getFirstUnfinished(ImportSectionAction.class);
+    Unfinished unfinished = storables.firstUnfinished(ImportSectionAction.class);
     if (unfinished != null) {
       return ActionResult.failed(unfinished.unfinishedMessage(this));
     }
@@ -54,7 +54,7 @@ public class DefineImportAction implements SingleAction, Storable {
     }
 
     TemplateParseResult result =
-        storables.getFirst(TemplateParser.class)
+        storables.first(TemplateParser.class)
             .parseTemplate(templateName, placeholders);
 
     if (!result.succeeded()) {
@@ -64,7 +64,7 @@ public class DefineImportAction implements SingleAction, Storable {
     lines = result.templateLines();
 
     storables.add(this);
-    storables.getFirst(ReadConfigsStorage.class).addRead(templateName);
+    storables.first(UsedConfigsStorage.class).addUsed(templateName);
     return ActionResult.ok();
   }
 

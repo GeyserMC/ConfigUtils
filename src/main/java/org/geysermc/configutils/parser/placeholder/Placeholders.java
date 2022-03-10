@@ -30,7 +30,7 @@ public final class Placeholders {
     name = name.substring(0, placeholderCloseIndex);
 
     // check if placeholder has been registered
-    Object placeholder = getPlaceholder(name);
+    Object placeholder = placeholder(name);
     if (placeholder == null) {
       return line;
     }
@@ -42,12 +42,12 @@ public final class Placeholders {
     return placeholder.toString();
   }
 
-  public Object getPlaceholder(String name) {
+  public Object placeholder(String name) {
     return placeholders.get(name);
   }
 
   public boolean isPlaceholder(String name) {
-    return getPlaceholder(name) != null;
+    return placeholder(name) != null;
   }
 
   public boolean removePlaceholder(String name) {
