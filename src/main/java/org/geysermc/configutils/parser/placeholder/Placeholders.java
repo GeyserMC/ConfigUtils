@@ -22,7 +22,7 @@ public final class Placeholders {
       return line;
     }
 
-    String name = line.substring(placeholderIndex);
+    String name = line.substring(placeholderIndex + 2);
     int placeholderCloseIndex = name.indexOf('}');
     if (placeholderCloseIndex == -1) {
       return line;
@@ -36,8 +36,8 @@ public final class Placeholders {
     }
 
     if (placeholder instanceof Supplier) {
-      Object response = ((Supplier<Object>) placeholder).get();
-      return line.replaceFirst("\\$\\{" + name + "}", response.toString());
+      Object response = ((Supplier<?>) placeholder).get();
+      return line.replace("${" + name + "}", response.toString());
     }
     return placeholder.toString();
   }

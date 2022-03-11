@@ -146,7 +146,7 @@ public class ConfigUtilities {
         new ConfigUpdater()
             .update(currentConfig, configVersionName, parseResult, changes, copyDirectly);
 
-    if (result.succeeded()) {
+    if (result.succeeded() && !result.changedLines().isEmpty()) {
       saveConfig(result.lines());
     }
     return result;

@@ -49,7 +49,7 @@ public class FileUtils {
 
   public static boolean writeToPath(Path path, List<String> lines) {
     try {
-      Files.createDirectories(path);
+      Files.createDirectories(path.getParent());
     } catch (IOException e) {
       throw new IllegalStateException("Failed to create directories for " + path, e);
     }

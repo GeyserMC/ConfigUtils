@@ -51,7 +51,7 @@ public class ConfigUpdater {
 
     if (!parseResult.succeeded()) {
       return ConfigFileUpdaterResult.failed(new IllegalStateException(
-          "Couldn't update config because we couldn't read the newest config template",
+          "Couldn't update the config because we couldn't read the newest config template",
           parseResult.error()
       ));
     }

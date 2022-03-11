@@ -6,6 +6,7 @@ import java.lang.reflect.Modifier;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.UUID;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.configutils.exception.ImproperConfigValueException;
@@ -78,6 +79,10 @@ public class ConfigLoader {
             } catch (IllegalArgumentException ignored) {
               value = Enum.valueOf(type, upperCase.replace('_', '-'));
             }
+          }
+
+          if (field.getType() == UUID.class) {
+            value = UUID.fromString((String) value);
           }
 
           try {

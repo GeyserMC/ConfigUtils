@@ -36,7 +36,7 @@ public final class Changes {
     }
     String oldKeyName = newKeyName;
     // this works backwards. New name to old name
-    for (int i = selected.size() - 1; i > 0; i--) {
+    for (int i = selected.size() - 1; i >= 0; i--) {
       oldKeyName = selected.get(i).oldKeyName(oldKeyName);
     }
     return oldKeyName;
@@ -59,7 +59,7 @@ public final class Changes {
   public List<Version> allVersionsBetween(int currentVersion, int newVersion) {
     List<Version> versions = new ArrayList<>();
     for (Version version : changes) {
-      if (version.versionNumber() < currentVersion) {
+      if (version.versionNumber() <= currentVersion) {
         continue;
       }
       if (version.versionNumber() > newVersion) {
