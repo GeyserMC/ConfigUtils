@@ -31,13 +31,13 @@ public final class PathFileCodec implements FileCodec {
   }
 
   @Override
-  public List<String> read(String configName) {
-    return FileUtils.readPath(path(configName));
+  public List<String> read(String file) {
+    return FileUtils.readPath(path(file));
   }
 
   @Override
-  public boolean write(String configName, List<String> lines) {
-    return FileUtils.writeToPath(path(configName), lines);
+  public void write(String file, List<String> lines) {
+    FileUtils.writeToPath(path(file), lines);
   }
 
   private Path path(String configName) {

@@ -89,14 +89,19 @@ public class ConfigUtilities {
     }
 
     Map<String, Object> mappedYaml;
-    // is null when the config has just been created
-    if (result.mappedYaml() == null) {
-      String text = result.lines().stream().collect(Collectors.joining(System.lineSeparator()));
 
-      mappedYaml = new Yaml().load(text);
-    } else {
-      mappedYaml = result.mappedYaml();
-    }
+    String text = result.lines().stream().collect(Collectors.joining(System.lineSeparator()));
+    mappedYaml = new Yaml().load(text);
+
+    //todo use code below once YamlConfigFileUpdater can add new sections to newVersion
+//    // is null when the config has just been created
+//    if (result.mappedYaml() == null) {
+//      String text = result.lines().stream().collect(Collectors.joining(System.lineSeparator()));
+//
+//      mappedYaml = new Yaml().load(text);
+//    } else {
+//      mappedYaml = result.mappedYaml();
+//    }
 
     ConfigLoader loader = new ConfigLoader();
     return loader.load(mappedYaml, mapTo, validations, postInitializeCallbackArgument);
@@ -190,12 +195,6 @@ public class ConfigUtilities {
 
     @NonNull
     public Builder fileCodec(@NonNull FileCodec fileCodec) {
-      this.fileCodec = Objects.requireNonNull(fileCodec);
-      return this;
-    }
-
-    @NonNull
-    public Builder fileCodec(FileCodec.@NonNull ReadWriteFileCodec fileCodec) {
       this.fileCodec = Objects.requireNonNull(fileCodec);
       return this;
     }

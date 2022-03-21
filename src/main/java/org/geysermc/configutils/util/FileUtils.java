@@ -6,6 +6,7 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -14,6 +15,8 @@ public class FileUtils {
   public static List<String> readPath(Path path) {
     try {
       return Files.readAllLines(path);
+    } catch (NoSuchFileException e) {
+      return null;
     } catch (IOException e) {
       throw new IllegalStateException(e);
     }
@@ -21,7 +24,7 @@ public class FileUtils {
 
   public static BufferedReader readUrl(URL url) {
     if (url == null) {
-      throw new IllegalStateException("Couldn't find requested file");
+      return null;
     }
 
     try {
@@ -47,7 +50,7 @@ public class FileUtils {
     }
   }
 
-  public static boolean writeToPath(Path path, List<String> lines) {
+  public static void writeToPath(Path path, List<String> lines) {
     try {
       Files.createDirectories(path.getParent());
     } catch (IOException e) {
@@ -56,7 +59,6 @@ public class FileUtils {
 
     try {
       Files.write(path, lines);
-      return true;
     } catch (IOException e) {
       throw new IllegalStateException("Failed to write to path", e);
     }
