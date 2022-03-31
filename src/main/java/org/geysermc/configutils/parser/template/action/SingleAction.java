@@ -1,8 +1,8 @@
-package org.geysermc.configutils.action;
+package org.geysermc.configutils.parser.template.action;
 
-import org.geysermc.configutils.action.storage.Storables;
 import org.geysermc.configutils.file.template.TemplateReader;
 import org.geysermc.configutils.parser.placeholder.Placeholders;
+import org.geysermc.configutils.parser.template.action.storage.Storables;
 
 public interface SingleAction extends Action {
   String friendlyName();

@@ -4,7 +4,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import org.geysermc.configutils.parser.TemplateParseResult;
+import org.geysermc.configutils.parser.template.TemplateParseResult;
 import org.geysermc.configutils.updater.change.Changes;
 import org.geysermc.configutils.updater.file.ConfigFileUpdaterResult;
 import org.geysermc.configutils.updater.file.yaml.YamlConfigFileUpdater;

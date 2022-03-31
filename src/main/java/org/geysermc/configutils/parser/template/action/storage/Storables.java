@@ -1,4 +1,4 @@
-package org.geysermc.configutils.action.storage;
+package org.geysermc.configutils.parser.template.action.storage;
 
 import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.ints.IntObjectImmutablePair;

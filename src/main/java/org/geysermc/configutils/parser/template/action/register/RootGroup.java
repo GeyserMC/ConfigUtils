@@ -1,10 +1,10 @@
-package org.geysermc.configutils.action.register;
+package org.geysermc.configutils.parser.template.action.register;
 
 import java.util.HashSet;
 import java.util.Set;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.configutils.action.Action;
-import org.geysermc.configutils.action.ActionGroup;
+import org.geysermc.configutils.parser.template.action.Action;
+import org.geysermc.configutils.parser.template.action.ActionGroup;
 
 public final class RootGroup extends ActionGroup {
   private final Set<Action> rootActions = new HashSet<>();

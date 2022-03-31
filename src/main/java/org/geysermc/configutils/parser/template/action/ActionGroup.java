@@ -1,11 +1,11 @@
-package org.geysermc.configutils.action;
+package org.geysermc.configutils.parser.template.action;
 
 import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.objects.ObjectObjectImmutablePair;
 import java.util.Objects;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.geysermc.configutils.action.register.RootGroup;
+import org.geysermc.configutils.parser.template.action.register.RootGroup;
 
 public abstract class ActionGroup implements Action {
   @NonNull

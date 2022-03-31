@@ -1,4 +1,4 @@
-package org.geysermc.configutils.action;
+package org.geysermc.configutils.parser.template.action;
 
 import java.util.Arrays;
 import java.util.List;

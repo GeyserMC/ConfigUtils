@@ -1,8 +1,8 @@
-package org.geysermc.configutils.action.predefined;
+package org.geysermc.configutils.parser.template.action.predefined;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.configutils.action.Action;
-import org.geysermc.configutils.action.ActionGroup;
+import org.geysermc.configutils.parser.template.action.Action;
+import org.geysermc.configutils.parser.template.action.ActionGroup;
 
 public class PredefinedGroup extends ActionGroup {
   @Override

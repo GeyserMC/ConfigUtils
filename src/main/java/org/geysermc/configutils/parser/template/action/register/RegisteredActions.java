@@ -1,12 +1,12 @@
-package org.geysermc.configutils.action.register;
+package org.geysermc.configutils.parser.template.action.register;
 
 import it.unimi.dsi.fastutil.Pair;
 import java.util.Objects;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.geysermc.configutils.action.Action;
-import org.geysermc.configutils.action.ActionGroup;
-import org.geysermc.configutils.action.SingleAction;
+import org.geysermc.configutils.parser.template.action.Action;
+import org.geysermc.configutils.parser.template.action.ActionGroup;
+import org.geysermc.configutils.parser.template.action.SingleAction;
 
 public final class RegisteredActions {
   private final RootGroup rootActions = new RootGroup();

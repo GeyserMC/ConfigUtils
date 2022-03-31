@@ -1,10 +1,10 @@
-package org.geysermc.configutils.parser;
+package org.geysermc.configutils.parser.template;
 
 import java.util.List;
 import java.util.Objects;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.geysermc.configutils.action.storage.Storables;
+import org.geysermc.configutils.parser.template.action.storage.Storables;
 
 public final class TemplateParseResult {
   private final List<String> lines;

@@ -1,20 +1,20 @@
-package org.geysermc.configutils.parser;
+package org.geysermc.configutils.parser.template;
 
 import it.unimi.dsi.fastutil.Pair;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.configutils.action.Action;
-import org.geysermc.configutils.action.ActionResult;
-import org.geysermc.configutils.action.SingleAction;
-import org.geysermc.configutils.action.register.RegisteredActions;
-import org.geysermc.configutils.action.storage.Storable;
-import org.geysermc.configutils.action.storage.Storables;
-import org.geysermc.configutils.action.storage.Unfinished;
-import org.geysermc.configutils.action.storage.predefined.UsedConfigsStorage;
 import org.geysermc.configutils.file.template.TemplateReader;
 import org.geysermc.configutils.parser.placeholder.Placeholders;
+import org.geysermc.configutils.parser.template.action.Action;
+import org.geysermc.configutils.parser.template.action.ActionResult;
+import org.geysermc.configutils.parser.template.action.SingleAction;
+import org.geysermc.configutils.parser.template.action.register.RegisteredActions;
+import org.geysermc.configutils.parser.template.action.storage.Storable;
+import org.geysermc.configutils.parser.template.action.storage.Storables;
+import org.geysermc.configutils.parser.template.action.storage.Unfinished;
+import org.geysermc.configutils.parser.template.action.storage.predefined.UsedConfigsStorage;
 
 public class TemplateParser implements Storable {
   private final TemplateReader reader;

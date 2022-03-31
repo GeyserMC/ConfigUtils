@@ -1,6 +1,6 @@
-package org.geysermc.configutils.action.storage;
+package org.geysermc.configutils.parser.template.action.storage;
 
-import org.geysermc.configutils.action.SingleAction;
+import org.geysermc.configutils.parser.template.action.SingleAction;
 
 /**
  * This is an addon for a {@link Storable}. Unfinished means that the storable has to be finished

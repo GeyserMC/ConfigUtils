@@ -1,15 +1,15 @@
-package org.geysermc.configutils.action.predefined;
+package org.geysermc.configutils.parser.template.action.predefined;
 
 import java.util.ArrayList;
 import java.util.List;
-import org.geysermc.configutils.action.ActionResult;
-import org.geysermc.configutils.action.SingleAction;
-import org.geysermc.configutils.action.storage.Singleton;
-import org.geysermc.configutils.action.storage.Storable;
-import org.geysermc.configutils.action.storage.Storables;
-import org.geysermc.configutils.action.storage.Unfinished;
 import org.geysermc.configutils.file.template.TemplateReader;
 import org.geysermc.configutils.parser.placeholder.Placeholders;
+import org.geysermc.configutils.parser.template.action.ActionResult;
+import org.geysermc.configutils.parser.template.action.SingleAction;
+import org.geysermc.configutils.parser.template.action.storage.Singleton;
+import org.geysermc.configutils.parser.template.action.storage.Storable;
+import org.geysermc.configutils.parser.template.action.storage.Storables;
+import org.geysermc.configutils.parser.template.action.storage.Unfinished;
 
 /**
  * The action responsible for importing a section to another config file. `>>| 10` is used to add
