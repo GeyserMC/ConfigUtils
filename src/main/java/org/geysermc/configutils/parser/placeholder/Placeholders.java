@@ -15,7 +15,7 @@ public final class Placeholders {
     return placeholders.put(name, value) != null;
   }
 
-  public String runPlaceholder(String line) {
+  public String replacePlaceholders(String line) {
     // convert: bla bla ${placeholder} to: placeholder
     int placeholderIndex = line.indexOf("${");
     if (placeholderIndex == -1) {

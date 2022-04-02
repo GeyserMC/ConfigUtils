@@ -49,6 +49,8 @@ public class TemplateParser implements Storable {
     storables.add(this);
 
     for (String line : lines) {
+      line = placeholders.replacePlaceholders(line);
+
       Pair<String, Action> action = actions.actionFromLine(line);
 
       // if the line isn't an action, it'll be stuff like comments and key/value lines

@@ -80,9 +80,11 @@ public class ImportSectionAction implements SingleAction, Storable, Singleton, U
 
     List<String> lines = defineImport.lines();
 
+    //todo this does almost the same thing as WriteRemainingAction, and why doesn't this call
+    // parseTemplate? Does this even work with 3+ dimensional templates
     List<String> linesToAdd = new ArrayList<>();
     for (int i = startLine; i < line; i++) {
-      linesToAdd.add(placeholders.runPlaceholder(lines.get(i)));
+      linesToAdd.add(placeholders.replacePlaceholders(lines.get(i)));
     }
 
     return ActionResult.addLines(linesToAdd);

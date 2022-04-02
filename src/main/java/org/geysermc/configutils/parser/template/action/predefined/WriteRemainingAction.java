@@ -49,7 +49,7 @@ public class WriteRemainingAction implements SingleAction {
 
     List<String> linesToAdd = new ArrayList<>();
     for (int i = startLine; i < lines.size(); i++) {
-      linesToAdd.add(placeholders.runPlaceholder(lines.get(i)));
+      linesToAdd.add(placeholders.replacePlaceholders(lines.get(i)));
     }
 
     storables.add(new LastImportSection(lines.size() - 1));
