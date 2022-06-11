@@ -149,6 +149,11 @@ public class YamlConfigFileUpdater implements ConfigFileUpdater {
 
         value = changes.newValue(correctName, value);
 
+        // without the quotes strings can cause issues with special characters like '-'
+        if (value instanceof String) {
+          value = "\"" + value + "\"";
+        }
+
         changed.add(correctName);
         updated.set(i + indexOffset, lineSpaces + name + ": " + value);
         setNewVersion(newVersion, correctName, value);
