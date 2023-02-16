@@ -1,7 +1,7 @@
 package org.geysermc.configutils.node.codec.type;
 
 import java.lang.reflect.AnnotatedType;
-import org.geysermc.configutils.node.codec.RegisteredCodecs;
+import org.geysermc.configutils.node.context.NodeContext;
 
 public final class DoubleCodec extends TypeCodec<Double> {
   public static final DoubleCodec INSTANCE = new DoubleCodec();
@@ -11,7 +11,7 @@ public final class DoubleCodec extends TypeCodec<Double> {
   }
 
   @Override
-  public Double deserialize(AnnotatedType type, Object value, RegisteredCodecs ignored) {
+  public Double deserialize(AnnotatedType type, Object value, NodeContext ignored) {
     if (value instanceof Number) {
       return ((Number) value).doubleValue();
     }
@@ -30,7 +30,7 @@ public final class DoubleCodec extends TypeCodec<Double> {
   }
 
   @Override
-  public Object serialize(AnnotatedType ignored, Double value, RegisteredCodecs ignored1) {
+  public Object serialize(AnnotatedType ignored, Double value, NodeContext ignored1) {
     return value;
   }
 }

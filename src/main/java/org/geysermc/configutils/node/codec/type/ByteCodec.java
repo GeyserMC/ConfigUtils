@@ -1,7 +1,7 @@
 package org.geysermc.configutils.node.codec.type;
 
 import java.lang.reflect.AnnotatedType;
-import org.geysermc.configutils.node.codec.RegisteredCodecs;
+import org.geysermc.configutils.node.context.NodeContext;
 
 public final class ByteCodec extends TypeCodec<Byte> {
   public static final ByteCodec INSTANCE = new ByteCodec();
@@ -11,7 +11,7 @@ public final class ByteCodec extends TypeCodec<Byte> {
   }
 
   @Override
-  public Byte deserialize(AnnotatedType type, Object value, RegisteredCodecs ignored) {
+  public Byte deserialize(AnnotatedType type, Object value, NodeContext ignored) {
     if (value instanceof Number) {
       long asLong = ((Number) value).longValue();
       if (asLong < Byte.MIN_VALUE || asLong > Byte.MAX_VALUE) {
@@ -34,7 +34,7 @@ public final class ByteCodec extends TypeCodec<Byte> {
   }
 
   @Override
-  public Object serialize(AnnotatedType ignored, Byte value, RegisteredCodecs ignored1) {
+  public Object serialize(AnnotatedType ignored, Byte value, NodeContext ignored1) {
     return value;
   }
 }

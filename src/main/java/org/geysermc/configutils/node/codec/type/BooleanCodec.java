@@ -1,7 +1,7 @@
 package org.geysermc.configutils.node.codec.type;
 
 import java.lang.reflect.AnnotatedType;
-import org.geysermc.configutils.node.codec.RegisteredCodecs;
+import org.geysermc.configutils.node.context.NodeContext;
 
 public final class BooleanCodec extends TypeCodec<Boolean> {
   public static final BooleanCodec INSTANCE = new BooleanCodec();
@@ -11,7 +11,7 @@ public final class BooleanCodec extends TypeCodec<Boolean> {
   }
 
   @Override
-  public Boolean deserialize(AnnotatedType type, Object value, RegisteredCodecs ignored) {
+  public Boolean deserialize(AnnotatedType type, Object value, NodeContext ignored) {
     if (value instanceof Boolean) {
       return (boolean) value;
     }
@@ -44,7 +44,7 @@ public final class BooleanCodec extends TypeCodec<Boolean> {
   }
 
   @Override
-  public Object serialize(AnnotatedType ignored, Boolean value, RegisteredCodecs ignored1) {
+  public Object serialize(AnnotatedType ignored, Boolean value, NodeContext ignored1) {
     return value;
   }
 }

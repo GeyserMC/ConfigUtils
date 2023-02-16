@@ -81,13 +81,12 @@ public class MapCodecTest {
     assertEquals(result, deserialize(new TypeToken<Map<UUID, Integer>>() {}, source, codecs));
   }
 
-  @SuppressWarnings("unchecked")
   private <K, V> Map<K, V> deserialize(
       TypeToken<Map<K, V>> type,
       Map<?, ?> value,
       RegisteredCodecs codecs
   ) {
-    return (Map<K, V>) typeCodec.deserialize(type.getCanonicalType(), value, codecs);
+    return TypeUtils.deserialize(typeCodec, type, value, codecs);
   }
 
   private RegisteredCodecs withString() {

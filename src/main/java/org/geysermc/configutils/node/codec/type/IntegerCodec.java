@@ -1,7 +1,7 @@
 package org.geysermc.configutils.node.codec.type;
 
 import java.lang.reflect.AnnotatedType;
-import org.geysermc.configutils.node.codec.RegisteredCodecs;
+import org.geysermc.configutils.node.context.NodeContext;
 
 public final class IntegerCodec extends TypeCodec<Integer> {
   public static final IntegerCodec INSTANCE = new IntegerCodec();
@@ -11,7 +11,7 @@ public final class IntegerCodec extends TypeCodec<Integer> {
   }
 
   @Override
-  public Integer deserialize(AnnotatedType type, Object value, RegisteredCodecs ignored) {
+  public Integer deserialize(AnnotatedType type, Object value, NodeContext ignored) {
     //todo add option to reject double, float and string values
     if (value instanceof Number) {
       long asLong = ((Number) value).longValue();
@@ -35,7 +35,7 @@ public final class IntegerCodec extends TypeCodec<Integer> {
   }
 
   @Override
-  public Object serialize(AnnotatedType ignored, Integer value, RegisteredCodecs ignored1) {
+  public Object serialize(AnnotatedType ignored, Integer value, NodeContext ignored1) {
     return value;
   }
 }

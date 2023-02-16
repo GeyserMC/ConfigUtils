@@ -1,7 +1,7 @@
 package org.geysermc.configutils.node.codec.type;
 
 import java.lang.reflect.AnnotatedType;
-import org.geysermc.configutils.node.codec.RegisteredCodecs;
+import org.geysermc.configutils.node.context.NodeContext;
 
 public final class FloatCodec extends TypeCodec<Float> {
   public static final FloatCodec INSTANCE = new FloatCodec();
@@ -11,7 +11,7 @@ public final class FloatCodec extends TypeCodec<Float> {
   }
 
   @Override
-  public Float deserialize(AnnotatedType type, Object value, RegisteredCodecs ignored) {
+  public Float deserialize(AnnotatedType type, Object value, NodeContext ignored) {
     if (value instanceof Number) {
       double asDouble = ((Number) value).doubleValue();
       if (asDouble < Float.MIN_VALUE || asDouble > Float.MAX_VALUE) {
@@ -34,7 +34,7 @@ public final class FloatCodec extends TypeCodec<Float> {
   }
 
   @Override
-  public Object serialize(AnnotatedType ignored, Float value, RegisteredCodecs ignored1) {
+  public Object serialize(AnnotatedType ignored, Float value, NodeContext ignored1) {
     return value;
   }
 }

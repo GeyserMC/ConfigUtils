@@ -56,4 +56,20 @@ public final class Utils {
     }
     return builder.toString();
   }
+
+  /**
+   * Converts added-to-queue to ADDED_TO_QUEUE
+   */
+  public static String kebabCaseToConstantCase(String fieldName) {
+    StringBuilder builder = new StringBuilder();
+    for (int i = 0; i < fieldName.length(); i++) {
+      char current = fieldName.charAt(i);
+      if (current == '-') {
+        builder.append('_');
+      } else {
+        builder.append(Character.toUpperCase(current));
+      }
+    }
+    return builder.toString();
+  }
 }

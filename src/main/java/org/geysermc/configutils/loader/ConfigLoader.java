@@ -1,5 +1,7 @@
 package org.geysermc.configutils.loader;
 
+import io.leangen.geantyref.GenericTypeReflector;
+import java.lang.reflect.AnnotatedType;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
@@ -13,16 +15,26 @@ import org.geysermc.configutils.loader.callback.GenericPostInitializeCallback;
 import org.geysermc.configutils.loader.callback.PostInitializeCallback;
 import org.geysermc.configutils.loader.validate.ValidationResult;
 import org.geysermc.configutils.loader.validate.Validations;
+import org.geysermc.configutils.node.codec.RegisteredCodecs;
+import org.geysermc.configutils.node.context.NodeContext;
+import org.geysermc.configutils.node.context.NodeOptions;
 import org.geysermc.configutils.util.Utils;
 
 public class ConfigLoader {
   @NonNull
+  @SuppressWarnings("unchecked")
   public <T> T load(
       @NonNull Map<String, Object> data,
       @NonNull Class<T> mapTo,
       @NonNull Validations validations,
-      @Nullable Object postInitializeCallbackArgument) {
-    return load("", data, mapTo, validations, postInitializeCallbackArgument);
+      @Nullable Object postInitializeCallbackArgument
+  ) {
+    NodeContext context = new NodeContext(RegisteredCodecs.defaults(), NodeOptions.defaults());
+    AnnotatedType type = GenericTypeReflector.annotate(mapTo);
+
+    Object config = context.codecFor(type).deserialize(type, data, context);
+
+    return (T) config;
   }
 
   @NonNull
@@ -31,8 +43,8 @@ public class ConfigLoader {
       @NonNull Map<String, Object> data,
       @NonNull Class<T> mapTo,
       @NonNull Validations validations,
-      @Nullable Object callbackArgument) {
-
+      @Nullable Object callbackArgument
+  ) {
     Objects.requireNonNull(data);
     Objects.requireNonNull(mapTo);
     Objects.requireNonNull(validations);

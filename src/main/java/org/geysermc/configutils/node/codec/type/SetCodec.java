@@ -5,7 +5,7 @@ import java.lang.reflect.AnnotatedParameterizedType;
 import java.lang.reflect.AnnotatedType;
 import java.util.HashSet;
 import java.util.Set;
-import org.geysermc.configutils.node.codec.RegisteredCodecs;
+import org.geysermc.configutils.node.context.NodeContext;
 
 public final class SetCodec extends TypeCodec<Set<?>> {
   public static final SetCodec INSTANCE = new SetCodec();
@@ -16,7 +16,7 @@ public final class SetCodec extends TypeCodec<Set<?>> {
   }
 
   @Override
-  public Set<?> deserialize(AnnotatedType type, Object toDeserialize, RegisteredCodecs codecs) {
+  public Set<?> deserialize(AnnotatedType type, Object toDeserialize, NodeContext context) {
     if (!(toDeserialize instanceof Set<?>)) {
       throw new IllegalStateException("Value should be an instance of Set");
     }
@@ -31,21 +31,21 @@ public final class SetCodec extends TypeCodec<Set<?>> {
     }
 
     AnnotatedType valueType = typeArgs[0];
-    TypeCodec<?> valueCodec = codecs.get(valueType);
+    TypeCodec<?> valueCodec = context.codecFor(valueType);
     if (valueCodec == null) {
       throw new IllegalStateException("No codec registered for type " + valueType);
     }
 
     Set<Object> result = new HashSet<>();
     for (Object entry : valueAsSet) {
-      result.add(valueCodec.deserialize(valueType, entry, codecs));
+      result.add(valueCodec.deserialize(valueType, entry, context));
     }
     return result;
   }
 
   @Override
   @SuppressWarnings({"rawtypes", "unchecked"})
-  public Object serialize(AnnotatedType type, Set<?> valueAsSet, RegisteredCodecs codecs) {
+  public Object serialize(AnnotatedType type, Set<?> valueAsSet, NodeContext context) {
     if (!(type instanceof AnnotatedParameterizedType)) {
       throw new IllegalStateException("Cannot serialize a raw Set");
     }
@@ -55,14 +55,14 @@ public final class SetCodec extends TypeCodec<Set<?>> {
     }
 
     AnnotatedType valueType = typeArgs[0];
-    TypeCodec valueCodec = codecs.get(valueType);
+    TypeCodec valueCodec = context.codecFor(valueType);
     if (valueCodec == null) {
       throw new IllegalStateException("No codec registered for type " + valueType);
     }
 
     Set<Object> result = new HashSet<>();
     for (Object entry : valueAsSet) {
-      result.add(valueCodec.serialize(valueType, entry, codecs));
+      result.add(valueCodec.serialize(valueType, entry, context));
     }
     return result;
   }

@@ -3,7 +3,7 @@ package org.geysermc.configutils.node.codec.type;
 import java.lang.reflect.AnnotatedType;
 import java.util.Locale;
 import java.util.UUID;
-import org.geysermc.configutils.node.codec.RegisteredCodecs;
+import org.geysermc.configutils.node.context.NodeContext;
 
 public final class UuidCodec extends TypeCodec<UUID> {
   public static final UuidCodec INSTANCE = new UuidCodec();
@@ -13,7 +13,7 @@ public final class UuidCodec extends TypeCodec<UUID> {
   }
 
   @Override
-  public UUID deserialize(AnnotatedType ignored, Object value, RegisteredCodecs ignored1) {
+  public UUID deserialize(AnnotatedType ignored, Object value, NodeContext ignored1) {
     String uuidString = value.toString();
     // support reading compact UUIDs
     if (uuidString.length() == 32) {
@@ -28,7 +28,7 @@ public final class UuidCodec extends TypeCodec<UUID> {
   }
 
   @Override
-  public Object serialize(AnnotatedType ignored, UUID value, RegisteredCodecs ignored1) {
+  public Object serialize(AnnotatedType ignored, UUID value, NodeContext ignored1) {
     return value.toString().toLowerCase(Locale.ROOT);
   }
 }

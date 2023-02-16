@@ -4,7 +4,6 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 
-import io.leangen.geantyref.GenericTypeReflector;
 import java.util.UUID;
 import org.geysermc.configutils.node.codec.RegisteredCodecs;
 import org.junit.jupiter.api.BeforeEach;
@@ -117,9 +116,8 @@ public class ArrayCodecTest {
     assertArrayEquals(expected, deserialize(expected.getClass(), source, codecs));
   }
 
-  @SuppressWarnings("unchecked")
   private <T> T deserialize(Class<T> clazz, Object[] source, RegisteredCodecs codecs) {
-    return (T) typeCodec.deserialize(GenericTypeReflector.annotate(clazz), source, codecs);
+    return TypeUtils.deserialize(typeCodec, clazz, source, codecs);
   }
 
   private RegisteredCodecs withInt() {

@@ -1,7 +1,7 @@
 package org.geysermc.configutils.node.codec.type;
 
 import java.lang.reflect.AnnotatedType;
-import org.geysermc.configutils.node.codec.RegisteredCodecs;
+import org.geysermc.configutils.node.context.NodeContext;
 
 public final class LongCodec extends TypeCodec<Long> {
   public static final LongCodec INSTANCE = new LongCodec();
@@ -11,7 +11,7 @@ public final class LongCodec extends TypeCodec<Long> {
   }
 
   @Override
-  public Long deserialize(AnnotatedType type, Object value, RegisteredCodecs ignored) {
+  public Long deserialize(AnnotatedType type, Object value, NodeContext ignored) {
     if (value instanceof Number) {
       return ((Number) value).longValue();
     }
@@ -30,7 +30,7 @@ public final class LongCodec extends TypeCodec<Long> {
   }
 
   @Override
-  public Object serialize(AnnotatedType ignored, Long value, RegisteredCodecs ignored1) {
+  public Object serialize(AnnotatedType ignored, Long value, NodeContext ignored1) {
     return value;
   }
 }

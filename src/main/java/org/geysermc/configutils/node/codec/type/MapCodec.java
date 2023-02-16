@@ -6,7 +6,7 @@ import java.lang.reflect.AnnotatedType;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
-import org.geysermc.configutils.node.codec.RegisteredCodecs;
+import org.geysermc.configutils.node.context.NodeContext;
 
 public final class MapCodec extends TypeCodec<Map<?, ?>> {
   public static final MapCodec INSTANCE = new MapCodec();
@@ -17,7 +17,7 @@ public final class MapCodec extends TypeCodec<Map<?, ?>> {
   }
 
   @Override
-  public Map<?, ?> deserialize(AnnotatedType type, Object toDeserialize, RegisteredCodecs codecs) {
+  public Map<?, ?> deserialize(AnnotatedType type, Object toDeserialize, NodeContext context) {
     if (!(toDeserialize instanceof Map<?,?>)) {
       throw new IllegalStateException("Value should be an instance of Map");
     }
@@ -33,8 +33,8 @@ public final class MapCodec extends TypeCodec<Map<?, ?>> {
     AnnotatedType keyType = typeArgs[0];
     AnnotatedType valueType = typeArgs[1];
 
-    TypeCodec<?> keyCodec = codecs.get(keyType);
-    TypeCodec<?> valueCodec = codecs.get(valueType);
+    TypeCodec<?> keyCodec = context.codecFor(keyType);
+    TypeCodec<?> valueCodec = context.codecFor(valueType);
 
     if (keyCodec == null) {
       throw new IllegalStateException("No codec registered for type " + keyType);
@@ -45,8 +45,8 @@ public final class MapCodec extends TypeCodec<Map<?, ?>> {
 
     Map<Object, Object> result = new HashMap<>(valueAsMap.size());
     for (Entry<?, ?> entry : valueAsMap.entrySet()) {
-      Object key = keyCodec.deserialize(keyType, entry.getKey(), codecs);
-      Object value = valueCodec.deserialize(valueType, entry.getValue(), codecs);
+      Object key = keyCodec.deserialize(keyType, entry.getKey(), context);
+      Object value = valueCodec.deserialize(valueType, entry.getValue(), context);
       result.put(key, value);
     }
     return result;
@@ -54,7 +54,7 @@ public final class MapCodec extends TypeCodec<Map<?, ?>> {
 
   @Override
   @SuppressWarnings({"rawtypes", "unchecked"})
-  public Object serialize(AnnotatedType type, Map<?, ?> valueAsMap, RegisteredCodecs codecs) {
+  public Object serialize(AnnotatedType type, Map<?, ?> valueAsMap, NodeContext context) {
     if (!(type instanceof AnnotatedParameterizedType)) {
       throw new IllegalStateException("Cannot serialize raw collections");
     }
@@ -65,8 +65,8 @@ public final class MapCodec extends TypeCodec<Map<?, ?>> {
     AnnotatedType keyType = typeArgs[0];
     AnnotatedType valueType = typeArgs[1];
 
-    TypeCodec keyCodec = codecs.get(keyType);
-    TypeCodec valueCodec = codecs.get(valueType);
+    TypeCodec keyCodec = context.codecFor(keyType);
+    TypeCodec valueCodec = context.codecFor(valueType);
 
     if (keyCodec == null) {
       throw new IllegalStateException("No codec registered for type " + keyType);
@@ -77,8 +77,8 @@ public final class MapCodec extends TypeCodec<Map<?, ?>> {
 
     Map<Object, Object> result = new HashMap<>(valueAsMap.size());
     for (Entry<?, ?> entry : valueAsMap.entrySet()) {
-      Object key = keyCodec.serialize(keyType, entry.getKey(), codecs);
-      Object value = valueCodec.serialize(valueType, entry.getValue(), codecs);
+      Object key = keyCodec.serialize(keyType, entry.getKey(), context);
+      Object value = valueCodec.serialize(valueType, entry.getValue(), context);
       result.put(key, value);
     }
     return result;
