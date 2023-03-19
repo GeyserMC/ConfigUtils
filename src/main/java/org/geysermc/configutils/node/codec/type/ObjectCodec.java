@@ -1,177 +1,110 @@
 package org.geysermc.configutils.node.codec.type;
 
-import io.leangen.geantyref.GenericTypeReflector;
 import java.lang.reflect.AnnotatedType;
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
-import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Map;
-import org.geysermc.configutils.node.Node;
+import java.util.Map.Entry;
+import java.util.Objects;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.configutils.node.codec.strategy.object.ObjectEmbodimentStrategy;
+import org.geysermc.configutils.node.codec.strategy.object.ObjectResolveStrategy;
+import org.geysermc.configutils.node.codec.strategy.object.ProxyEmbodimentStrategy;
+import org.geysermc.configutils.node.codec.strategy.object.ReflectionResolveStrategy;
 import org.geysermc.configutils.node.context.MetaOptions;
 import org.geysermc.configutils.node.context.NodeContext;
+import org.geysermc.configutils.node.meta.Range;
 
 public final class ObjectCodec extends TypeCodec<Object> {
-  public static final ObjectCodec INSTANCE = new ObjectCodec();
+  public static final ObjectCodec REFLECTION_PROXY_INSTANCE =
+      new ObjectCodec(new ReflectionResolveStrategy(), new ProxyEmbodimentStrategy());
 
-  private ObjectCodec() {
+  private final ObjectResolveStrategy resolveStrategy;
+  private final ObjectEmbodimentStrategy embodimentStrategy;
+
+  public ObjectCodec(
+      @NonNull ObjectResolveStrategy resolveStrategy,
+      @NonNull ObjectEmbodimentStrategy embodimentStrategy
+  ) {
     super(Object.class);
+    this.resolveStrategy = Objects.requireNonNull(resolveStrategy);
+    this.embodimentStrategy = Objects.requireNonNull(embodimentStrategy);
   }
 
   @Override
-  public Node<Object> deserialize(AnnotatedType type, Object value, NodeContext context) {
-    if (GenericTypeReflector.erase(type.getType()).isInterface()) {
-      return ObjectCodecProxied.INSTANCE.deserialize(type, value, context);
+  public Object deserialize(AnnotatedType type, Object rawValue, NodeContext context) {
+    if (!(rawValue instanceof Map<?, ?>)) {
+      throw new IllegalStateException("An object is serialized from a map");
     }
-    throw new IllegalStateException("Cannot deserialize " + type);
+    Map<?, ?> valueAsMap = (Map<?, ?>) rawValue;
+
+    Map<String, Object> validEntries = new HashMap<>();
+    for (Entry<String, MetaOptions> entry : resolveStrategy.resolve(type, context).entrySet()) {
+      String key = entry.getKey();
+      MetaOptions meta = entry.getValue();
+
+      String rawKey = context.options().nameEncoder().apply(key);
+      System.out.println(rawKey);
+      Object rawEntryValue = valueAsMap.get(rawKey);
+
+      Object entryValue = null;
+      if (rawEntryValue != null) {
+        try {
+          entryValue = meta.typeCodec().deserialize(meta.type(), rawEntryValue, context);
+        } catch (Throwable throwable) {
+          if (!meta.defaultOnFailure()) {
+            throw throwable;
+          }
+          //todo add logger and only log on debug
+          throwable.printStackTrace();
+        }
+      }
+      if (entryValue == null) {
+        entryValue = meta.deserializedDefaultValue();
+      }
+
+      if (!meta.isInRange(entryValue)) {
+        Range range = meta.range();
+        //todo DefaultOnFailure & add error handler option
+        throw new IndexOutOfBoundsException(String.format(
+            "'%s' (key: %s) is not in the allowed range of from: %s, to: %s!",
+            entryValue, rawKey, range.from(), range.to()
+        ));
+      }
+
+      validEntries.put(key, entryValue);
+    }
+    return embodimentStrategy.embody(type, validEntries);
   }
 
   @Override
+  @SuppressWarnings({"unchecked", "rawtypes"})
   public Object serialize(AnnotatedType type, Object value, NodeContext context) {
-    if (GenericTypeReflector.erase(type.getType()).isInterface()) {
-      return ObjectCodecProxied.INSTANCE.serialize(type, value, context);
-    }
-    throw new IllegalStateException("Cannot serialize " + type);
-  }
+    Map<String, Object> validEntries = embodimentStrategy.disembody(value);
+    Map<String, Object> mappings = new HashMap<>();
+    for (Entry<String, MetaOptions> entry : resolveStrategy.resolve(type, context).entrySet()) {
+      String key = entry.getKey();
+      MetaOptions meta = entry.getValue();
 
-  private static final class ObjectCodecProxied extends TypeCodec<Object> {
-    public static final ObjectCodecProxied INSTANCE = new ObjectCodecProxied();
-
-    private ObjectCodecProxied() {
-      super(Object.class);
-    }
-
-    private static final class ProxyInvocationHandler implements InvocationHandler {
-      private final Type proxiedType;
-      private final Map<String, Object> content;
-
-      private ProxyInvocationHandler(Type proxiedType, Map<String, Object> content) {
-        this.content = content;
-        this.proxiedType = proxiedType;
+      Object entryValue = validEntries.get(key);
+      if (entryValue == null) {
+        entryValue = meta.deserializedDefaultValue();
       }
 
-      @Override
-      public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-        // methods implemented in every class
-        if ("equals".equals(method.getName()) && method.getParameterCount() == 1 &&
-            method.getReturnType() == boolean.class) {
-          return args != null && args.length == 1 &&
-                 Proxy.isProxyClass(args[0].getClass()) &&
-                 equals(Proxy.getInvocationHandler(args[0]));
-        }
-        if ("hashCode".equals(method.getName()) && method.getParameterCount() == 0 &&
-            method.getReturnType() == int.class) {
-          return content.hashCode();
-        }
-        if ("toString".equals(method.getName()) && method.getParameterCount() == 0 &&
-            method.getReturnType() == String.class) {
-          return GenericTypeReflector.getTypeName(proxiedType) + '@' + content.hashCode();
-        }
-
-        if (method.getParameterCount() == 0) {
-          return content.get(method.getName());
-        }
-        throw new NoSuchMethodException();
+      if (!meta.isInRange(entryValue)) {
+        String rawKey = context.options().nameEncoder().apply(key);
+        Range range = meta.range();
+        //todo DefaultOnFailure & add error handler option
+        throw new IndexOutOfBoundsException(String.format(
+            "'%s' (key: %s) is not in the allowed range of from: %s, to: %s!",
+            entryValue, rawKey, range.from(), range.to()
+        ));
       }
 
-      @Override
-      public boolean equals(Object object) {
-        if (this == object) {
-          return true;
-        }
-        if (!(object instanceof ProxyInvocationHandler)) {
-          return false;
-        }
-        return this.content.equals(((ProxyInvocationHandler) object).content);
-      }
-    }
-
-    @Override
-    public Node<Object> deserialize(AnnotatedType type, Object value, NodeContext context) {
-      if (!(value instanceof Map<?, ?>)) {
-        throw new IllegalStateException("An object is serialized from a map");
-      }
-      Map<?, ?> valueAsMap = (Map<?, ?>) value;
-
-      Class<?> clazz = GenericTypeReflector.erase(type.getType());
-      Map<String, Node<?>> mappings = new HashMap<>();
-      for (Method method : clazz.getMethods()) {
-        if (method.getParameterCount() != 0) {
-          continue;
-        }
-
-        AnnotatedType returnType = GenericTypeReflector.getReturnType(method, type);
-        MetaOptions meta = context.createMeta(returnType);
-
-        //todo instead of failing when there is something missing:
-        // mark the node as changed (add that as a field)
-        // note: that's actually not possible since we want to apply all annotations later
-        // instead we should prob make a StrategyState for the ObjectStrategy that marks them as absent
-
-        String name = method.getName();
-        Object entry = valueAsMap.get(context.options().nameEncoder().apply(name));
-        if (entry == null) {
-          //todo add option to fail when there are missing keys
-          //-- fail by default, maybe add an @Optional??
-          continue;
-        }
-
-        TypeCodec<?> codec = context.codecFor(returnType);
-        if (codec == null) {
-          throw new IllegalStateException("No codec registered for type " + returnType);
-        }
-
-        mappings.put(name, codec.deserialize(returnType, entry, context));
-      }
-
-      return Proxy.newProxyInstance(
-          ObjectCodec.class.getClassLoader(),
-          new Class[] {clazz},
-          new ProxyInvocationHandler(type.getType(), mappings)
+      mappings.put(
+          context.options().nameEncoder().apply(key),
+          ((TypeCodec) meta.typeCodec()).serialize(meta.type(), entryValue, context)
       );
     }
-
-    @Override
-    public Object serialize(AnnotatedType type, Object value, NodeContext context) {
-      if (!Proxy.isProxyClass(value.getClass())) {
-        throw new IllegalStateException(
-            "An ObjectCodecProxied cannot serialize non-proxied type " + value.getClass()
-        );
-      }
-
-      InvocationHandler invocationHandler = Proxy.getInvocationHandler(value);
-      if (!(invocationHandler instanceof ProxyInvocationHandler)) {
-        throw new IllegalStateException("Cannot serialize custom proxy type " + value.getClass());
-      }
-
-      Map<?, ?> valueAsMap = ((ProxyInvocationHandler) invocationHandler).content;
-
-      Method[] methods = GenericTypeReflector.erase(type.getType()).getMethods();
-      Map<String, Object> mappings = new HashMap<>();
-      for (Method method : methods) {
-        if (method.getParameterCount() != 0) {
-          continue;
-        }
-
-        String name = method.getName();
-        Object entry = valueAsMap.get(name);
-        if (entry == null) {
-          continue;
-        }
-
-        AnnotatedType returnType = GenericTypeReflector.getReturnType(method, type);
-        TypeCodec<?> codec = context.codecFor(returnType);
-        if (codec == null) {
-          throw new IllegalStateException("No codec registered for type " + returnType);
-        }
-
-        mappings.put(
-            context.options().nameEncoder().apply(name),
-            codec.deserialize(returnType, entry, context)
-        );
-      }
-      return mappings;
-    }
+    return mappings;
   }
 }

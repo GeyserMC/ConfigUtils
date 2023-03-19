@@ -8,8 +8,8 @@ import org.geysermc.configutils.node.context.NodeContext;
 import org.geysermc.configutils.node.context.NodeOptions;
 
 public class TypeUtils {
-  public static NodeContext createContext(RegisteredCodecs codecs, AnnotatedType type) {
-    return new NodeContext(codecs, NodeOptions.builder().build(), type);
+  public static NodeContext createContext(RegisteredCodecs codecs) {
+    return new NodeContext(codecs, NodeOptions.builder().build());
   }
 
   public static <T> T deserialize(
@@ -37,6 +37,25 @@ public class TypeUtils {
       Object data,
       RegisteredCodecs codecs
   ) {
-    return (T) codec.deserialize(type, data, createContext(codecs, type));
+    return (T) codec.deserialize(type, data, createContext(codecs));
+  }
+
+  public static <T> T serialize(
+      TypeCodec<?> codec,
+      Class<?> type,
+      Object data,
+      RegisteredCodecs codecs
+  ) {
+    return serialize(codec, GenericTypeReflector.annotate(type), data, codecs);
+  }
+
+  @SuppressWarnings({"unchecked", "rawtypes"})
+  public static <T> T serialize(
+      TypeCodec codec,
+      AnnotatedType type,
+      Object data,
+      RegisteredCodecs codecs
+  ) {
+    return (T) codec.serialize(type, data, createContext(codecs));
   }
 }

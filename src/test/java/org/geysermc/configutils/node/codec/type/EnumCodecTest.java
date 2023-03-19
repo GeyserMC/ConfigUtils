@@ -2,20 +2,16 @@ package org.geysermc.configutils.node.codec.type;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import io.leangen.geantyref.GenericTypeReflector;
-import org.junit.jupiter.api.BeforeEach;
+import org.geysermc.configutils.node.codec.RegisteredCodecs;
 import org.junit.jupiter.api.Test;
 
 public class EnumCodecTest {
-  private TypeCodec<Enum<?>> enumTypeCodec;
+  private final EnumCodec codec = EnumCodec.INSTANCE;
+  private final RegisteredCodecs register =
+      RegisteredCodecs.builder().register(EnumCodec.INSTANCE).build();
 
   public enum EnumTest {
     ABC, D_E_F
-  }
-
-  @BeforeEach
-  public void setupCodec() {
-    enumTypeCodec = EnumCodec.INSTANCE;
   }
 
   @Test
@@ -58,12 +54,11 @@ public class EnumCodecTest {
     assertEquals("d-e-f", serialize(EnumTest.D_E_F));
   }
 
-  @SuppressWarnings("unchecked")
   private <T extends Enum<T>> Enum<T> deserialize(Class<T> type, String value) {
-    return (Enum<T>) enumTypeCodec.deserialize(GenericTypeReflector.annotate(type), value, null);
+    return TypeUtils.deserialize(codec, type, value, register);
   }
 
   private <T extends Enum<T>> Object serialize(Enum<T> type) {
-    return enumTypeCodec.serialize(null, type, null);
+    return TypeUtils.serialize(EnumCodec.INSTANCE, type.getClass(), type, register);
   }
 }

@@ -2,7 +2,6 @@ package org.geysermc.configutils.node.codec.type;
 
 import io.leangen.geantyref.TypeToken;
 import java.lang.reflect.AnnotatedType;
-import org.geysermc.configutils.node.Node;
 import org.geysermc.configutils.node.context.NodeContext;
 
 public abstract class TypeCodec<T> {
@@ -19,7 +18,7 @@ public abstract class TypeCodec<T> {
     this.type = TypeToken.get(type);
   }
 
-  public abstract Node<T> deserialize(AnnotatedType type, Object value, NodeContext context);
+  public abstract T deserialize(AnnotatedType type, Object value, NodeContext context);
 
   public abstract Object serialize(AnnotatedType type, T value, NodeContext context);
 

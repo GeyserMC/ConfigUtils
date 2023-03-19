@@ -41,7 +41,7 @@ public class RegisteredCodecs {
         .register(SetCodec.TYPE, SetCodec.INSTANCE)
         .register(MapCodec.TYPE, MapCodec.INSTANCE)
         .register(EnumCodec.INSTANCE)
-        .registerGreedy(ObjectCodec.INSTANCE)
+        .registerGreedy(ObjectCodec.REFLECTION_PROXY_INSTANCE)
         .build();
   }
 

@@ -8,6 +8,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.configutils.node.codec.type.TypeCodec;
 import org.geysermc.configutils.node.meta.Comment;
 import org.geysermc.configutils.node.meta.DefaultOnFailure;
+import org.geysermc.configutils.node.meta.Defaults.DefaultBoolean;
 import org.geysermc.configutils.node.meta.Defaults.DefaultDecimal;
 import org.geysermc.configutils.node.meta.Defaults.DefaultNumeric;
 import org.geysermc.configutils.node.meta.Defaults.DefaultString;
@@ -52,6 +53,11 @@ public class MetaOptions {
     if (decimal != null) {
       return decimal.value();
     }
+
+    DefaultBoolean bool = type.getAnnotation(DefaultBoolean.class);
+    if (bool != null) {
+      return bool.value();
+    }
     return null;
   }
 
@@ -77,6 +83,10 @@ public class MetaOptions {
 
   public boolean isInRange(Object value) {
     return range().isInRange(value);
+  }
+
+  public AnnotatedType type() {
+    return type;
   }
 
   public TypeCodec<?> typeCodec() {

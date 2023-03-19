@@ -23,4 +23,10 @@ public final class Defaults {
   public @interface DefaultDecimal {
     double value() default 0.0;
   }
+
+  @Retention(RetentionPolicy.RUNTIME)
+  @Target(ElementType.METHOD)
+  public @interface DefaultBoolean {
+    boolean value() default false;
+  }
 }
