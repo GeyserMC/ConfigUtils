@@ -34,7 +34,7 @@ public final class EnumCodec extends TypeCodec<Enum<?>> {
 
     Enum<?> deserialized;
     String rawName = value.toString();
-    String correctName = context.options().enumDecoder().apply(rawName);
+    String correctName = context.options().codec().enumDecoder().apply(rawName);
 
     try {
       deserialized = Enum.valueOf(typeAsEnum, correctName);
@@ -48,6 +48,6 @@ public final class EnumCodec extends TypeCodec<Enum<?>> {
 
   @Override
   public Object serialize(AnnotatedType ignored, Enum<?> value, NodeContext ignored1) {
-    return ignored1.options().enumEncoder().apply(value.name());
+    return ignored1.options().codec().enumEncoder().apply(value.name());
   }
 }

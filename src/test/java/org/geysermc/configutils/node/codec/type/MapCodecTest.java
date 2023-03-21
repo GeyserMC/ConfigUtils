@@ -91,14 +91,16 @@ public class MapCodecTest {
 
   private RegisteredCodecs withString() {
     return RegisteredCodecs.builder()
+        .register(MapCodec.TYPE, MapCodec.INSTANCE)
         .register(StringCodec.INSTANCE)
         .build();
   }
 
   private RegisteredCodecs withUuidAndInteger() {
     return RegisteredCodecs.builder()
+        .register(MapCodec.TYPE, MapCodec.INSTANCE)
         .register(UuidCodec.INSTANCE)
-        .register(IntegerCodec.INSTANCE)
+        .registerPrimitive(IntegerCodec.INSTANCE)
         .build();
   }
 }

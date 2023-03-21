@@ -5,11 +5,12 @@ import io.leangen.geantyref.TypeToken;
 import java.lang.reflect.AnnotatedType;
 import org.geysermc.configutils.node.codec.RegisteredCodecs;
 import org.geysermc.configutils.node.context.NodeContext;
-import org.geysermc.configutils.node.context.NodeOptions;
+import org.geysermc.configutils.node.context.RootNodeContext;
+import org.geysermc.configutils.node.context.option.NodeOptions;
 
 public class TypeUtils {
-  public static NodeContext createContext(RegisteredCodecs codecs) {
-    return new NodeContext(codecs, NodeOptions.builder().build());
+  public static NodeContext createContext(RegisteredCodecs codecs, AnnotatedType type) {
+    return new RootNodeContext(codecs, NodeOptions.defaults(), type);
   }
 
   public static <T> T deserialize(
@@ -37,7 +38,7 @@ public class TypeUtils {
       Object data,
       RegisteredCodecs codecs
   ) {
-    return (T) codec.deserialize(type, data, createContext(codecs));
+    return (T) codec.deserialize(type, data, createContext(codecs, type));
   }
 
   public static <T> T serialize(
@@ -56,6 +57,6 @@ public class TypeUtils {
       Object data,
       RegisteredCodecs codecs
   ) {
-    return (T) codec.serialize(type, data, createContext(codecs));
+    return (T) codec.serialize(type, data, createContext(codecs, type));
   }
 }

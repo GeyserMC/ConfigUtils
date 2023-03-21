@@ -17,7 +17,8 @@ import org.geysermc.configutils.loader.validate.ValidationResult;
 import org.geysermc.configutils.loader.validate.Validations;
 import org.geysermc.configutils.node.codec.RegisteredCodecs;
 import org.geysermc.configutils.node.context.NodeContext;
-import org.geysermc.configutils.node.context.NodeOptions;
+import org.geysermc.configutils.node.context.RootNodeContext;
+import org.geysermc.configutils.node.context.option.NodeOptions;
 import org.geysermc.configutils.util.Utils;
 
 public class ConfigLoader {
@@ -29,8 +30,9 @@ public class ConfigLoader {
       @NonNull Validations validations,
       @Nullable Object postInitializeCallbackArgument
   ) {
-    NodeContext context = new NodeContext(RegisteredCodecs.defaults(), NodeOptions.defaults());
     AnnotatedType type = GenericTypeReflector.annotate(mapTo);
+    NodeContext context =
+        new RootNodeContext(RegisteredCodecs.defaults(), NodeOptions.defaults(), type);
 
     Object config = context.codecFor(type).deserialize(type, data, context);
 

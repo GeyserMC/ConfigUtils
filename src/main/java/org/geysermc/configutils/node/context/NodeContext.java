@@ -1,33 +1,75 @@
 package org.geysermc.configutils.node.context;
 
 import java.lang.reflect.AnnotatedType;
+import java.util.Objects;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.configutils.node.codec.RegisteredCodecs;
 import org.geysermc.configutils.node.codec.type.TypeCodec;
+import org.geysermc.configutils.node.context.option.MetaOptions;
+import org.geysermc.configutils.node.context.option.NodeOptions;
 
-public final class NodeContext {
-  private final RegisteredCodecs registeredCodecs;
+public abstract class NodeContext {
+  private final AnnotatedType type;
+  private final MetaOptions meta;
+  private TypeCodec<?> codec;
 
-  //todo these are global options, add per node options
-  // it'd know the type so that it can retrieve related options for you e.g.:
-  // is the comment translatable, what's the default value,
-  // mark the node (and thus the config) as changed,
-  // maybe even conditions? (e.g. enable-global-linking can only be true when linking is enabled)
-  private final NodeOptions options;
+  private boolean changed;
 
-  public NodeContext(RegisteredCodecs registeredCodecs, NodeOptions options) {
-    this.registeredCodecs = registeredCodecs;
-    this.options = options;
+  protected NodeContext(@NonNull AnnotatedType type) {
+    this.type = Objects.requireNonNull(type);
+    this.meta = new MetaOptions(this);
   }
+
+  protected void init() {
+    codec = codecFor(type());
+    if (codec == null) {
+      throw new IllegalStateException("No codec registered for type " + type());
+    }
+  }
+
+  public AnnotatedType type() {
+    return type;
+  }
+
+  public MetaOptions meta() {
+    return meta;
+  }
+
+  public <T> TypeCodec<T> codec() {
+    //noinspection unchecked
+    return (TypeCodec<T>) codec;
+  }
+
+  public abstract RegisteredCodecs codecs();
 
   public <T> TypeCodec<T> codecFor(AnnotatedType type) {
-    return registeredCodecs.get(type);
+    return codecs().get(type);
   }
 
-  public NodeOptions options() {
-    return options;
+  public abstract NodeOptions options();
+
+  public NodeContext createChildContext(AnnotatedType type, String key) {
+    return new ChildNodeContext(this, type, key);
   }
 
-  public MetaOptions createMeta(AnnotatedType type) {
-    return new MetaOptions(this, type);
+  /**
+   * Returns the full key of the node. This combines the parent full key (if it has a parent) and
+   * its own key. In contrast to {@link #key()}, the root node will return an empty string instead
+   * of null.
+   */
+  public abstract String fullKey();
+
+  /**
+   * Returns the key of this node, or null if this is the root node.
+   */
+  public abstract @Nullable String key();
+
+  public void markChanged() {
+    changed = true;
+  }
+
+  public boolean changed() {
+    return changed;
   }
 }

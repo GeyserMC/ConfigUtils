@@ -7,14 +7,13 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import org.geysermc.configutils.node.codec.type.TypeCodec;
-import org.geysermc.configutils.node.context.MetaOptions;
 import org.geysermc.configutils.node.context.NodeContext;
 
 public final class ReflectionResolveStrategy implements ObjectResolveStrategy {
   @Override
-  public Map<String, MetaOptions> resolve(AnnotatedType type, NodeContext context) {
+  public Map<String, NodeContext> resolve(AnnotatedType type, NodeContext context) {
     Class<?> clazz = GenericTypeReflector.erase(type.getType());
-    Map<String, MetaOptions> mappings = new HashMap<>();
+    Map<String, NodeContext> mappings = new HashMap<>();
     for (Method method : clazz.getMethods()) {
       if (method.getParameterCount() != 0) {
         continue;
@@ -30,7 +29,7 @@ public final class ReflectionResolveStrategy implements ObjectResolveStrategy {
         throw new IllegalStateException("No codec registered for type " + returnType);
       }
 
-      mappings.put(method.getName(), context.createMeta(returnType));
+      mappings.put(method.getName(), context.createChildContext(returnType, method.getName()));
     }
     return Collections.unmodifiableMap(mappings);
   }

@@ -150,7 +150,7 @@
     <dependency>
       <groupId>io.leangen.geantyref</groupId>
       <artifactId>geantyref</artifactId>
-      <version>1.3.13</version>
+      <version>1.3.14</version>
     </dependency>
     <!-- Annotations from the Checker Framework: nullness, interning, locking, ... -->
     <dependency>

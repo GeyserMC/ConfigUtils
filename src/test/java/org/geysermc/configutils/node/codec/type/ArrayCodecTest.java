@@ -29,7 +29,10 @@ public class ArrayCodecTest {
 
   @Test
   public void deserializeWithUnregisteredComponentCodec() {
-    RegisteredCodecs codecs = RegisteredCodecs.builder().build();
+    RegisteredCodecs codecs =
+        RegisteredCodecs.builder()
+            .register(ArrayCodec.MATCH, ArrayCodec.INSTANCE)
+            .build();
 
     assertEquals(
         "No codec registered for type int",
@@ -122,18 +125,21 @@ public class ArrayCodecTest {
 
   private RegisteredCodecs withInt() {
     return RegisteredCodecs.builder()
+        .register(ArrayCodec.MATCH, ArrayCodec.INSTANCE)
         .registerPrimitive(IntegerCodec.INSTANCE)
         .build();
   }
 
   private RegisteredCodecs withDouble() {
     return RegisteredCodecs.builder()
+        .register(ArrayCodec.MATCH, ArrayCodec.INSTANCE)
         .registerPrimitive(DoubleCodec.INSTANCE)
         .build();
   }
 
   private RegisteredCodecs withUuid() {
     return RegisteredCodecs.builder()
+        .register(ArrayCodec.MATCH, ArrayCodec.INSTANCE)
         .register(UuidCodec.INSTANCE)
         .build();
   }

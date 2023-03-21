@@ -1,4 +1,4 @@
-package org.geysermc.configutils.node.context;
+package org.geysermc.configutils.node.context.option;
 
 import java.util.Objects;
 import java.util.function.Function;
@@ -6,22 +6,19 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.configutils.util.Utils;
 
-public final class NodeOptions {
+public final class CodecOptions {
   private final Function<String, String> nameEncoder;
   private final Function<String, String> enumDecoder;
   private final Function<String, String> enumEncoder;
-  private final Function<String, String> commentTranslator;
 
-  private NodeOptions(
+  private CodecOptions(
       @NonNull Function<String, String> nameEncoder,
       @NonNull Function<String, String> enumDecoder,
-      @NonNull Function<String, String> enumEncoder,
-      @NonNull Function<String, String> commentTranslator
+      @NonNull Function<String, String> enumEncoder
   ) {
     this.nameEncoder = Objects.requireNonNull(nameEncoder);
     this.enumDecoder = Objects.requireNonNull(enumDecoder);
     this.enumEncoder = Objects.requireNonNull(enumEncoder);
-    this.commentTranslator = Objects.requireNonNull(commentTranslator);
   }
 
   public @NonNull Function<String, String> nameEncoder() {
@@ -36,11 +33,7 @@ public final class NodeOptions {
     return enumEncoder;
   }
 
-  public @NonNull Function<String, String> commentTranslator() {
-    return commentTranslator;
-  }
-
-  public static NodeOptions defaults() {
+  public static CodecOptions defaults() {
     return builder().build();
   }
 
@@ -52,7 +45,6 @@ public final class NodeOptions {
     private Function<String, String> nameEncoder;
     private Function<String, String> enumDecoder;
     private Function<String, String> enumEncoder;
-    private Function<String, String> commentTranslator;
 
     private Builder() {
     }
@@ -84,21 +76,11 @@ public final class NodeOptions {
       return this;
     }
 
-    public @Nullable Function<String, String> commentTranslator() {
-      return commentTranslator;
-    }
-
-    public Builder commentTranslator(@Nullable Function<String, String> commentTranslator) {
-      this.commentTranslator = commentTranslator;
-      return this;
-    }
-
-    public NodeOptions build() {
-      return new NodeOptions(
+    public CodecOptions build() {
+      return new CodecOptions(
           nameEncoder != null ? nameEncoder : Utils::camelCaseToKebabCase,
           enumDecoder != null ? enumDecoder : Utils::kebabCaseToConstantCase,
-          enumEncoder != null ? enumEncoder : Utils::constantCaseToKebabCase,
-          commentTranslator != null ? commentTranslator : input -> input
+          enumEncoder != null ? enumEncoder : Utils::constantCaseToKebabCase
       );
     }
   }

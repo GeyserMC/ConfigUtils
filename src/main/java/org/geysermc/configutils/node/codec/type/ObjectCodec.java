@@ -10,9 +10,8 @@ import org.geysermc.configutils.node.codec.strategy.object.ObjectEmbodimentStrat
 import org.geysermc.configutils.node.codec.strategy.object.ObjectResolveStrategy;
 import org.geysermc.configutils.node.codec.strategy.object.ProxyEmbodimentStrategy;
 import org.geysermc.configutils.node.codec.strategy.object.ReflectionResolveStrategy;
-import org.geysermc.configutils.node.context.MetaOptions;
+import org.geysermc.configutils.node.context.option.MetaOptions;
 import org.geysermc.configutils.node.context.NodeContext;
-import org.geysermc.configutils.node.meta.Range;
 
 public final class ObjectCodec extends TypeCodec<Object> {
   public static final ObjectCodec REFLECTION_PROXY_INSTANCE =
@@ -31,25 +30,24 @@ public final class ObjectCodec extends TypeCodec<Object> {
   }
 
   @Override
-  public Object deserialize(AnnotatedType type, Object rawValue, NodeContext context) {
-    if (!(rawValue instanceof Map<?, ?>)) {
+  public Object deserialize(AnnotatedType type, Object inputValue, NodeContext pContext) {
+    if (!(inputValue instanceof Map<?, ?>)) {
       throw new IllegalStateException("An object is serialized from a map");
     }
-    Map<?, ?> valueAsMap = (Map<?, ?>) rawValue;
+    Map<?, ?> valueAsMap = (Map<?, ?>) inputValue;
 
     Map<String, Object> validEntries = new HashMap<>();
-    for (Entry<String, MetaOptions> entry : resolveStrategy.resolve(type, context).entrySet()) {
+    for (Entry<String, NodeContext> entry : resolveStrategy.resolve(type, pContext).entrySet()) {
       String key = entry.getKey();
-      MetaOptions meta = entry.getValue();
+      NodeContext context = entry.getValue();
+      MetaOptions meta = context.meta();
 
-      String rawKey = context.options().nameEncoder().apply(key);
-      System.out.println(rawKey);
-      Object rawEntryValue = valueAsMap.get(rawKey);
+      String rawKey = context.options().codec().nameEncoder().apply(key);
+      Object value = valueAsMap.get(rawKey);
 
-      Object entryValue = null;
-      if (rawEntryValue != null) {
+      if (value != null) {
         try {
-          entryValue = meta.typeCodec().deserialize(meta.type(), rawEntryValue, context);
+          value = context.codec().deserialize(context.type(), value, context);
         } catch (Throwable throwable) {
           if (!meta.defaultOnFailure()) {
             throw throwable;
@@ -58,51 +56,25 @@ public final class ObjectCodec extends TypeCodec<Object> {
           throwable.printStackTrace();
         }
       }
-      if (entryValue == null) {
-        entryValue = meta.deserializedDefaultValue();
-      }
-
-      if (!meta.isInRange(entryValue)) {
-        Range range = meta.range();
-        //todo DefaultOnFailure & add error handler option
-        throw new IndexOutOfBoundsException(String.format(
-            "'%s' (key: %s) is not in the allowed range of from: %s, to: %s!",
-            entryValue, rawKey, range.from(), range.to()
-        ));
-      }
-
-      validEntries.put(key, entryValue);
+      validEntries.put(key, meta.applyMeta(rawKey, value));
     }
     return embodimentStrategy.embody(type, validEntries);
   }
 
   @Override
-  @SuppressWarnings({"unchecked", "rawtypes"})
-  public Object serialize(AnnotatedType type, Object value, NodeContext context) {
-    Map<String, Object> validEntries = embodimentStrategy.disembody(value);
+  public Object serialize(AnnotatedType type, Object inputValue, NodeContext pContext) {
+    Map<String, Object> validEntries = embodimentStrategy.disembody(inputValue);
     Map<String, Object> mappings = new HashMap<>();
-    for (Entry<String, MetaOptions> entry : resolveStrategy.resolve(type, context).entrySet()) {
+    for (Entry<String, NodeContext> entry : resolveStrategy.resolve(type, pContext).entrySet()) {
       String key = entry.getKey();
-      MetaOptions meta = entry.getValue();
+      NodeContext context = entry.getValue();
 
-      Object entryValue = validEntries.get(key);
-      if (entryValue == null) {
-        entryValue = meta.deserializedDefaultValue();
-      }
-
-      if (!meta.isInRange(entryValue)) {
-        String rawKey = context.options().nameEncoder().apply(key);
-        Range range = meta.range();
-        //todo DefaultOnFailure & add error handler option
-        throw new IndexOutOfBoundsException(String.format(
-            "'%s' (key: %s) is not in the allowed range of from: %s, to: %s!",
-            entryValue, rawKey, range.from(), range.to()
-        ));
-      }
+      String rawKey = context.options().codec().nameEncoder().apply(key);
+      Object value = context.meta().applyMeta(rawKey, validEntries.get(key));
 
       mappings.put(
-          context.options().nameEncoder().apply(key),
-          ((TypeCodec) meta.typeCodec()).serialize(meta.type(), entryValue, context)
+          context.options().codec().nameEncoder().apply(key),
+          context.codec().serialize(context.type(), value, context)
       );
     }
     return mappings;
