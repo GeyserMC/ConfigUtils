@@ -35,6 +35,11 @@ public class ChildNodeContext extends NodeContext {
   }
 
   @Override
+  public int configVersion() {
+    return parent.configVersion();
+  }
+
+  @Override
   public String fullKey() {
     String fullKey = parent.fullKey();
     if (fullKey.isEmpty()) {

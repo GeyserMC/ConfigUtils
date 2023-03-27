@@ -1,71 +1,68 @@
 package org.geysermc.configutils;
 
-import java.util.Collections;
+import io.leangen.geantyref.GenericTypeReflector;
+import java.io.Reader;
+import java.lang.reflect.AnnotatedType;
+import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.configutils.file.codec.FileCodec;
-import org.geysermc.configutils.file.template.TemplateReader;
-import org.geysermc.configutils.loader.ConfigLoader;
 import org.geysermc.configutils.loader.validate.Validations;
+import org.geysermc.configutils.node.codec.RegisteredCodecs;
+import org.geysermc.configutils.node.context.NodeContext;
+import org.geysermc.configutils.node.context.RootNodeContext;
+import org.geysermc.configutils.node.context.option.NodeOptions;
 import org.geysermc.configutils.parser.placeholder.Placeholders;
-import org.geysermc.configutils.parser.template.TemplateParseResult;
-import org.geysermc.configutils.parser.template.TemplateParser;
-import org.geysermc.configutils.parser.template.action.Action;
-import org.geysermc.configutils.parser.template.action.predefined.PredefinedGroup;
-import org.geysermc.configutils.parser.template.action.register.RegisteredActions;
 import org.geysermc.configutils.updater.ConfigUpdater;
 import org.geysermc.configutils.updater.change.Changes;
 import org.geysermc.configutils.updater.file.ConfigFileUpdaterResult;
+import org.yaml.snakeyaml.DumperOptions;
+import org.yaml.snakeyaml.DumperOptions.FlowStyle;
 import org.yaml.snakeyaml.Yaml;
 
 public class ConfigUtilities {
-  private final TemplateReader templateReader;
   private final FileCodec fileCodec;
   private final String configFile;
-  private final String templateFile;
   private final String configVersionName;
-  private final RegisteredActions actions;
   private final Changes changes;
   private final Set<String> copyDirectly;
-  private final Placeholders placeholders;
   private final Validations validations;
   private final Object postInitializeCallbackArgument;
-
   private final boolean saveConfigAutomatically;
 
+  private final RegisteredCodecs codecs;
+  private final NodeOptions options;
+
   private ConfigUtilities(
-      @NonNull TemplateReader templateReader,
       @NonNull FileCodec fileCodec,
       @NonNull String configFile,
-      @NonNull String templateFile,
       @NonNull String configVersionName,
-      @NonNull RegisteredActions actions,
-      @NonNull Changes changes,
+      @Nullable Changes changes,
       @NonNull Set<String> copyDirectly,
       @NonNull Placeholders placeholders,
       @NonNull Validations validations,
       @Nullable Object postInitializeCallbackArgument,
-      boolean saveConfigAutomatically) {
-    this.templateReader = Objects.requireNonNull(templateReader);
+      boolean saveConfigAutomatically
+  ) {
     this.fileCodec = Objects.requireNonNull(fileCodec);
     this.configFile = Objects.requireNonNull(configFile);
-    this.templateFile = Objects.requireNonNull(templateFile);
     this.configVersionName = Objects.requireNonNull(configVersionName);
-    this.actions = Objects.requireNonNull(actions);
-    this.changes = Objects.requireNonNull(changes);
+    this.changes = changes != null ? changes : Changes.builder().build();
     this.copyDirectly = Objects.requireNonNull(copyDirectly);
-    this.placeholders = Objects.requireNonNull(placeholders);
+    Objects.requireNonNull(placeholders);
     this.validations = Objects.requireNonNull(validations);
     this.postInitializeCallbackArgument = postInitializeCallbackArgument;
-
     this.saveConfigAutomatically = saveConfigAutomatically;
+
+    this.codecs = RegisteredCodecs.defaults();
+    this.options = NodeOptions.builder()
+        .placeholders(placeholders)
+        .build();
   }
 
   public static Builder builder() {
@@ -81,116 +78,87 @@ public class ConfigUtilities {
     return createAndMapOrUpdateAndMap(mapTo);
   }
 
-  @SuppressWarnings("ConstantConditions")
+  @SuppressWarnings({"ConstantConditions", "unchecked"})
   public <T> T createAndMapOrUpdateAndMap(Class<T> mapTo) throws Throwable {
-    ConfigFileUpdaterResult result = createOrUpdate();
-    if (!result.succeeded()) {
-      throw result.error();
+    AnnotatedType configClass = GenericTypeReflector.annotate(mapTo);
+    Map<String, Object> currentConfig = currentConfig();
+
+    if (currentConfig == null) {
+      currentConfig = new HashMap<>();
+    } else {
+      ConfigFileUpdaterResult result = update0(configClass, currentConfig);
+
+      if (!result.succeeded()) {
+        throw result.error();
+      }
+      if (result.config() != null) {
+        currentConfig = result.config();
+      }
     }
 
-    Map<String, Object> mappedYaml;
+    NodeContext context = new RootNodeContext(codecs, options, configClass);
+    T config = (T) context.codec().deserialize(configClass, currentConfig, context);
 
-    String text = result.lines().stream().collect(Collectors.joining(System.lineSeparator()));
-    mappedYaml = new Yaml().load(text);
-
-    //todo use code below once YamlConfigFileUpdater can add new sections to newVersion
-//    // is null when the config has just been created
-//    if (result.mappedYaml() == null) {
-//      String text = result.lines().stream().collect(Collectors.joining(System.lineSeparator()));
-//
-//      mappedYaml = new Yaml().load(text);
-//    } else {
-//      mappedYaml = result.mappedYaml();
-//    }
-
-    ConfigLoader loader = new ConfigLoader();
-    return loader.load(mappedYaml, mapTo, validations, postInitializeCallbackArgument);
-  }
-
-  public ConfigFileUpdaterResult createOrUpdate() {
-    List<String> currentConfig = readCurrentConfig();
-    if (currentConfig != null) {
-      return update0(currentConfig);
+    if (context.changed()) {
+      saveConfig(config, context);
     }
-
-    TemplateParseResult result = create();
-
-    if (!result.succeeded()) {
-      return ConfigFileUpdaterResult.failed(result.error());
-    }
-
-    return ConfigFileUpdaterResult.ok(
-        result.templateLines(), null, Collections.emptySet(), Collections.emptyList());
+    return config;
   }
 
-  public TemplateParseResult create() {
-    TemplateParseResult result = parseTemplate();
-    if (result.succeeded()) {
-      saveConfig(result.templateLines());
-    }
-    return result;
-  }
-
-  public ConfigFileUpdaterResult update() {
-    List<String> currentConfig = readCurrentConfig();
-    Objects.requireNonNull(currentConfig, "Can't update a non-existing config");
-    return update0(currentConfig);
-  }
-
-  private TemplateParseResult parseTemplate() {
-    return new TemplateParser(templateReader, actions).parseTemplate(templateFile, placeholders);
-  }
-
-  private ConfigFileUpdaterResult update0(List<String> currentConfig) {
-    TemplateParseResult parseResult = parseTemplate();
-    if (!parseResult.succeeded()) {
-      return ConfigFileUpdaterResult.failed(parseResult.error());
-    }
+  private ConfigFileUpdaterResult update0(AnnotatedType configClass, Map<String, ?> currentConfig) {
+    NodeContext context = new RootNodeContext(codecs, options, configClass);
 
     ConfigFileUpdaterResult result =
         new ConfigUpdater()
-            .update(currentConfig, configVersionName, parseResult, changes, copyDirectly);
+            .update(context, currentConfig, configVersionName, changes, copyDirectly);
 
-    if (result.succeeded() && !result.changedLines().isEmpty()) {
-      saveConfig(result.lines());
+    if (result.succeeded() && !result.unchanged()) {
+      saveConfig(result.config());
     }
     return result;
   }
 
-  private void saveConfig(List<String> lines) {
+  @SuppressWarnings("unchecked")
+  private void saveConfig(Object config, NodeContext context) {
     if (saveConfigAutomatically) {
-      fileCodec.write(configFile, lines);
+      Map<String, Object> encodedConfig =
+          (Map<String, Object>) context.codec().serialize(context.type(), config, context);
+
+      encodedConfig.put(configVersionName, context.configVersion());
+
+      saveConfig(encodedConfig);
     }
   }
 
-  private List<String> readCurrentConfig() {
-    return fileCodec.read(configFile);
+  // make sure that if you call this, the config version field has been added
+  private void saveConfig(Map<String, Object> config) {
+    if (saveConfigAutomatically) {
+      DumperOptions dumperOptions = new DumperOptions();
+      dumperOptions.setDefaultFlowStyle(FlowStyle.BLOCK);
+      String file = new Yaml(dumperOptions).dump(config);
+      fileCodec.write(configFile, file);
+    }
+  }
+
+  private Map<String, Object> currentConfig() {
+    Reader reader = fileCodec.read(configFile);
+    return reader != null ? new Yaml().load(reader) : null;
   }
 
   public static final class Builder {
-    private final RegisteredActions actions = new RegisteredActions();
     private final Placeholders placeholders = new Placeholders();
     private final Set<String> copyDirectly = new HashSet<>();
 
-    private TemplateReader templateReader;
     private FileCodec fileCodec;
     private String configFile;
-    private String templateFile;
     private String configVersionName = "config-version";
     private Changes changes;
     private Validations validations;
     private Object postInitializeCallbackArgument;
 
     private boolean saveConfigAutomatically = true;
-    private boolean defaultActions = true;
 
     private Builder() {
-    }
-
-    @NonNull
-    public Builder templateReader(@NonNull TemplateReader templateReader) {
-      this.templateReader = Objects.requireNonNull(templateReader);
-      return this;
     }
 
     @NonNull
@@ -206,20 +174,8 @@ public class ConfigUtilities {
     }
 
     @NonNull
-    public Builder template(@NonNull String templateFile) {
-      this.templateFile = Objects.requireNonNull(templateFile);
-      return this;
-    }
-
-    @NonNull
     public Builder configVersionName(@NonNull String configVersionName) {
       this.configVersionName = Objects.requireNonNull(configVersionName);
-      return this;
-    }
-
-    @NonNull
-    public Builder registerAction(@NonNull Action action) {
-      actions.registerAction(action);
       return this;
     }
 
@@ -232,7 +188,7 @@ public class ConfigUtilities {
     @NonNull
     public Builder copyDirectly(@NonNull String subcategory) {
       Objects.requireNonNull(subcategory);
-      copyDirectly.add(subcategory + '.'); // see YamlConfigFileUpdater line 101
+      copyDirectly.add(subcategory);
       return this;
     }
 
@@ -271,27 +227,14 @@ public class ConfigUtilities {
     }
 
     @NonNull
-    public Builder removeDefaultActions() {
-      this.defaultActions = false;
-      return this;
-    }
-
-    @NonNull
     public ConfigUtilities build() {
-      if (defaultActions) {
-        actions.registerAction(new PredefinedGroup());
-      }
-
       Validations notNullValidations =
           validations != null ? validations : Validations.builder().build();
 
       return new ConfigUtilities(
-          templateReader,
           fileCodec,
           configFile,
-          templateFile,
           configVersionName,
-          actions,
           changes,
           copyDirectly,
           placeholders,

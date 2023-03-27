@@ -2,15 +2,14 @@ package org.geysermc.configutils.node.codec.type;
 
 import java.lang.reflect.AnnotatedType;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Objects;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.configutils.node.codec.strategy.object.ObjectEmbodimentStrategy;
 import org.geysermc.configutils.node.codec.strategy.object.ObjectResolveStrategy;
 import org.geysermc.configutils.node.codec.strategy.object.ProxyEmbodimentStrategy;
 import org.geysermc.configutils.node.codec.strategy.object.ReflectionResolveStrategy;
-import org.geysermc.configutils.node.context.option.MetaOptions;
 import org.geysermc.configutils.node.context.NodeContext;
 
 public final class ObjectCodec extends TypeCodec<Object> {
@@ -37,26 +36,27 @@ public final class ObjectCodec extends TypeCodec<Object> {
     Map<?, ?> valueAsMap = (Map<?, ?>) inputValue;
 
     Map<String, Object> validEntries = new HashMap<>();
-    for (Entry<String, NodeContext> entry : resolveStrategy.resolve(type, pContext).entrySet()) {
-      String key = entry.getKey();
-      NodeContext context = entry.getValue();
-      MetaOptions meta = context.meta();
-
-      String rawKey = context.options().codec().nameEncoder().apply(key);
+    for (NodeContext node : resolveStrategy.resolve(type, pContext)) {
+      String rawKey = node.options().codec().nameEncoder().apply(node.key());
       Object value = valueAsMap.get(rawKey);
+
+      // we have to help an empty config section out
+      if (node.meta().isSection() && value == null) {
+        value = new HashMap<>();
+      }
 
       if (value != null) {
         try {
-          value = context.codec().deserialize(context.type(), value, context);
+          value = node.codec().deserialize(node.type(), value, node);
         } catch (Throwable throwable) {
-          if (!meta.defaultOnFailure()) {
+          if (!node.meta().defaultOnFailure()) {
             throw throwable;
           }
           //todo add logger and only log on debug
           throwable.printStackTrace();
         }
       }
-      validEntries.put(key, meta.applyMeta(rawKey, value));
+      validEntries.put(node.key(), node.meta().applyMeta(value));
     }
     return embodimentStrategy.embody(type, validEntries);
   }
@@ -64,19 +64,22 @@ public final class ObjectCodec extends TypeCodec<Object> {
   @Override
   public Object serialize(AnnotatedType type, Object inputValue, NodeContext pContext) {
     Map<String, Object> validEntries = embodimentStrategy.disembody(inputValue);
-    Map<String, Object> mappings = new HashMap<>();
-    for (Entry<String, NodeContext> entry : resolveStrategy.resolve(type, pContext).entrySet()) {
-      String key = entry.getKey();
-      NodeContext context = entry.getValue();
-
-      String rawKey = context.options().codec().nameEncoder().apply(key);
-      Object value = context.meta().applyMeta(rawKey, validEntries.get(key));
-
+    Map<String, Object> mappings = new LinkedHashMap<>();
+    for (NodeContext node : resolveStrategy.resolve(type, pContext)) {
+      Object value = node.meta().applyMeta(validEntries.get(node.key()));
       mappings.put(
-          context.options().codec().nameEncoder().apply(key),
-          context.codec().serialize(context.type(), value, context)
+          node.options().codec().nameEncoder().apply(node.key()),
+          node.codec().serialize(node.type(), value, node)
       );
     }
     return mappings;
+  }
+
+  public ObjectResolveStrategy resolveStrategy() {
+    return resolveStrategy;
+  }
+
+  public ObjectEmbodimentStrategy embodimentStrategy() {
+    return embodimentStrategy;
   }
 }

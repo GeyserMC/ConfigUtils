@@ -33,10 +33,7 @@ public class ConfigLoader {
     AnnotatedType type = GenericTypeReflector.annotate(mapTo);
     NodeContext context =
         new RootNodeContext(RegisteredCodecs.defaults(), NodeOptions.defaults(), type);
-
-    Object config = context.codecFor(type).deserialize(type, data, context);
-
-    return (T) config;
+    return (T) context.codec().deserialize(type, data, context);
   }
 
   @NonNull

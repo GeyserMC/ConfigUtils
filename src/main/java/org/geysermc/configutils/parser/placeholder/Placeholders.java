@@ -15,35 +15,12 @@ public final class Placeholders {
     return placeholders.put(name, value) != null;
   }
 
-  public String replacePlaceholders(String line) {
-    // convert: bla bla ${placeholder} to: placeholder
-    int placeholderIndex = line.indexOf("${");
-    if (placeholderIndex == -1) {
-      return line;
-    }
-
-    String name = line.substring(placeholderIndex + 2);
-    int placeholderCloseIndex = name.indexOf('}');
-    if (placeholderCloseIndex == -1) {
-      return line;
-    }
-    name = name.substring(0, placeholderCloseIndex);
-
-    // check if placeholder has been registered
-    Object placeholder = placeholder(name);
-    if (placeholder == null) {
-      return line;
-    }
-
-    if (placeholder instanceof Supplier) {
-      Object response = ((Supplier<?>) placeholder).get();
-      return line.replace("${" + name + "}", response.toString());
-    }
-    return placeholder.toString();
-  }
-
   public Object placeholder(String name) {
-    return placeholders.get(name);
+    Object placeholder = placeholders.get(name);
+    if (placeholder instanceof Supplier) {
+      return ((Supplier<?>) placeholder).get();
+    }
+    return placeholder;
   }
 
   public boolean isPlaceholder(String name) {

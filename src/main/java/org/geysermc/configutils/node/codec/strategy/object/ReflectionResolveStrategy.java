@@ -3,17 +3,17 @@ package org.geysermc.configutils.node.codec.strategy.object;
 import io.leangen.geantyref.GenericTypeReflector;
 import java.lang.reflect.AnnotatedType;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 import org.geysermc.configutils.node.codec.type.TypeCodec;
 import org.geysermc.configutils.node.context.NodeContext;
 
 public final class ReflectionResolveStrategy implements ObjectResolveStrategy {
   @Override
-  public Map<String, NodeContext> resolve(AnnotatedType type, NodeContext context) {
+  public List<NodeContext> resolve(AnnotatedType type, NodeContext context) {
     Class<?> clazz = GenericTypeReflector.erase(type.getType());
-    Map<String, NodeContext> mappings = new HashMap<>();
+    List<NodeContext> mappings = new ArrayList<>();
     for (Method method : clazz.getMethods()) {
       if (method.getParameterCount() != 0) {
         continue;
@@ -29,8 +29,8 @@ public final class ReflectionResolveStrategy implements ObjectResolveStrategy {
         throw new IllegalStateException("No codec registered for type " + returnType);
       }
 
-      mappings.put(method.getName(), context.createChildContext(returnType, method.getName()));
+      mappings.add(context.createChildContext(returnType, method.getName()));
     }
-    return Collections.unmodifiableMap(mappings);
+    return Collections.unmodifiableList(mappings);
   }
 }

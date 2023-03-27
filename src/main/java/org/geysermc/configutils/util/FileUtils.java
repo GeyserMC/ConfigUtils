@@ -12,9 +12,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class FileUtils {
-  public static List<String> readPath(Path path) {
+  public static BufferedReader readPath(Path path) {
     try {
-      return Files.readAllLines(path);
+      return Files.newBufferedReader(path, StandardCharsets.UTF_8);
     } catch (NoSuchFileException e) {
       return null;
     } catch (IOException e) {
@@ -50,7 +50,7 @@ public class FileUtils {
     }
   }
 
-  public static void writeToPath(Path path, List<String> lines) {
+  public static void writeToPath(Path path, String content) {
     try {
       Files.createDirectories(path.getParent());
     } catch (IOException e) {
@@ -58,7 +58,7 @@ public class FileUtils {
     }
 
     try {
-      Files.write(path, lines);
+      Files.write(path, content.getBytes(StandardCharsets.UTF_8));
     } catch (IOException e) {
       throw new IllegalStateException("Failed to write to path", e);
     }

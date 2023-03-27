@@ -6,6 +6,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.configutils.node.codec.RegisteredCodecs;
 import org.geysermc.configutils.node.context.option.NodeOptions;
+import org.geysermc.configutils.node.meta.ConfigVersion;
 
 public final class RootNodeContext extends NodeContext {
   private final RegisteredCodecs registeredCodecs;
@@ -30,6 +31,12 @@ public final class RootNodeContext extends NodeContext {
   @Override
   public NodeOptions options() {
     return options;
+  }
+
+  @Override
+  public int configVersion() {
+    ConfigVersion version = type().getAnnotation(ConfigVersion.class);
+    return version != null ? version.value() : 0;
   }
 
   @Override

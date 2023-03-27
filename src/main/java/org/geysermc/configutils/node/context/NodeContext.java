@@ -49,6 +49,8 @@ public abstract class NodeContext {
 
   public abstract NodeOptions options();
 
+  public abstract int configVersion();
+
   public NodeContext createChildContext(AnnotatedType type, String key) {
     return new ChildNodeContext(this, type, key);
   }

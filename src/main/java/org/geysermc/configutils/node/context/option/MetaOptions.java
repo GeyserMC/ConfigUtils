@@ -1,7 +1,5 @@
 package org.geysermc.configutils.node.context.option;
 
-import static io.leangen.geantyref.GenericTypeReflector.annotate;
-
 import io.leangen.geantyref.GenericTypeReflector;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedType;
@@ -10,6 +8,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.configutils.node.codec.type.TypeCodec;
 import org.geysermc.configutils.node.context.NodeContext;
 import org.geysermc.configutils.node.meta.Comment;
+import org.geysermc.configutils.node.meta.ConfigSection;
+import org.geysermc.configutils.node.meta.ConfigVersion;
 import org.geysermc.configutils.node.meta.DefaultOnFailure;
 import org.geysermc.configutils.node.meta.Defaults.DefaultBoolean;
 import org.geysermc.configutils.node.meta.Defaults.DefaultDecimal;
@@ -25,7 +25,9 @@ public class MetaOptions {
     this.context = context;
   }
 
-  public Object applyMeta(String key, Object value) {
+  public Object applyMeta(Object value) {
+    boolean wasNull = value == null;
+
     if (value == null) {
       value = deserializedDefaultValue();
     }
@@ -34,12 +36,23 @@ public class MetaOptions {
       value = resolvedPlaceholder();
     }
 
+    if (value == null) {
+      throw new IllegalStateException(String.format(
+          "Node %s has neither a value nor a default value",
+          context.fullKey()
+      ));
+    }
+
+    if (wasNull) {
+      context.markChanged();
+    }
+
     if (!isInRange(value)) {
       Range range = range();
       //todo DefaultOnFailure & add error handler option
       throw new IndexOutOfBoundsException(String.format(
-          "'%s' (key: %s) is not in the allowed range of from: %s, to: %s!",
-          value, key, range.from(), range.to()
+          "'%s' (fullKey: %s) is not in the allowed range of from: %s, to: %s!",
+          value, context.fullKey(), range.from(), range.to()
       ));
     }
 
@@ -49,6 +62,10 @@ public class MetaOptions {
   public @Nullable String comment() {
     Comment comment = annotation(Comment.class);
     return comment != null ? comment.value() : null;
+  }
+
+  public boolean isSection() {
+    return annotation(ConfigSection.class) != null || annotation(ConfigVersion.class) != null;
   }
 
   public @Nullable String placeholder() {
@@ -72,8 +89,14 @@ public class MetaOptions {
 
     Object placeholder = context.options().placeholders().placeholder(placeholderId);
 
-    checkCompatibility(placeholder, "placeholder");
-    return placeholder;
+    if (placeholder == null) {
+      throw new IllegalStateException(String.format(
+          "Node %s is annotated with Placeholder but no placeholder with id %s was provided",
+          context.fullKey(), placeholderId
+      ));
+    }
+
+    return deserializeAndCheck(placeholder, "placeholder");
   }
 
   public @Nullable Object defaultValue() {
@@ -100,20 +123,16 @@ public class MetaOptions {
   }
 
   public @Nullable Object deserializedDefaultValue() {
-    Object deserialized;
     try {
       Object defaultValue = defaultValue();
       if (defaultValue == null) {
         return null;
       }
 
-      deserialized = codec().deserialize(annotate(defaultValue.getClass()), defaultValue, context);
+      return deserializeAndCheck(defaultValue, "default value");
     } catch (IllegalStateException exception) {
       throw new IllegalStateException("Failed to retrieve default value for " + type(), exception);
     }
-
-    checkCompatibility(deserialized, "default value");
-    return deserialized;
   }
 
   public boolean defaultOnFailure() {
@@ -140,14 +159,17 @@ public class MetaOptions {
     return context.codec();
   }
 
-  private void checkCompatibility(Object toCheck, String checkType) {
-    Type type = GenericTypeReflector.box(type().getType());
+  private Object deserializeAndCheck(Object toHandle, String checkType) {
+    Object deserialized = codec().deserialize(type(), toHandle, context);
 
-    if (!GenericTypeReflector.isSuperType(type, toCheck.getClass())) {
+    Type type = GenericTypeReflector.box(type().getType());
+    if (!GenericTypeReflector.isSuperType(type, deserialized.getClass())) {
       throw new IllegalStateException(String.format(
           "Incompatible %s! %s is not compatible with %s",
-          checkType, type, toCheck.getClass()
+          checkType, type, deserialized.getClass()
       ));
     }
+
+    return deserialized;
   }
 }

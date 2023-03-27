@@ -1,23 +1,23 @@
 package org.geysermc.configutils.file.codec;
 
-import java.util.List;
+import java.io.BufferedReader;
 
 public interface FileCodec {
   /**
-   * Reads the specified file
+   * Reads the specified file as a stream
    *
    * @param file the file to read
    * @return a list of all the lines in the specified file, or null when the file does not exist
    * @throws IllegalStateException if something unexpected happened while reading the file
    */
-  List<String> read(String file) throws IllegalStateException;
+  BufferedReader read(String file) throws IllegalStateException;
 
   /**
-   * Writes the provided lines to the specified file
+   * Writes the provided data to the specified file
    *
    * @param file  the file to write to
-   * @param lines the lines to write
+   * @param content the data to write
    * @throws IllegalStateException if something unexpected happened while writing the file
    */
-  void write(String file, List<String> lines) throws IllegalStateException;
+  void write(String file, String content) throws IllegalStateException;
 }

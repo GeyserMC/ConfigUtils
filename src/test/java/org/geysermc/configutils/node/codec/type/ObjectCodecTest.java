@@ -143,7 +143,7 @@ public class ObjectCodecTest {
         () -> deserialize(RangeAnnotatedProxiedInterface.class, data, codecs)
     );
     assertEquals(
-        "'a too long string' (key: aaaa) is not in the allowed range of from: 0, to: 10!",
+        "'a too long string' (fullKey: aaaa) is not in the allowed range of from: 0, to: 10!",
         exception.getMessage()
     );
   }
