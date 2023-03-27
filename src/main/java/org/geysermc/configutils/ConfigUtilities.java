@@ -12,6 +12,7 @@ import java.util.function.Supplier;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.configutils.file.codec.FileCodec;
+import org.geysermc.configutils.loader.ConfigLoader;
 import org.geysermc.configutils.loader.validate.Validations;
 import org.geysermc.configutils.node.codec.RegisteredCodecs;
 import org.geysermc.configutils.node.context.NodeContext;
@@ -31,7 +32,6 @@ public class ConfigUtilities {
   private final String configVersionName;
   private final Changes changes;
   private final Set<String> copyDirectly;
-  private final Validations validations;
   private final Object postInitializeCallbackArgument;
   private final boolean saveConfigAutomatically;
 
@@ -45,7 +45,7 @@ public class ConfigUtilities {
       @Nullable Changes changes,
       @NonNull Set<String> copyDirectly,
       @NonNull Placeholders placeholders,
-      @NonNull Validations validations,
+      @Nullable Validations validations,
       @Nullable Object postInitializeCallbackArgument,
       boolean saveConfigAutomatically
   ) {
@@ -55,13 +55,13 @@ public class ConfigUtilities {
     this.changes = changes != null ? changes : Changes.builder().build();
     this.copyDirectly = Objects.requireNonNull(copyDirectly);
     Objects.requireNonNull(placeholders);
-    this.validations = Objects.requireNonNull(validations);
     this.postInitializeCallbackArgument = postInitializeCallbackArgument;
     this.saveConfigAutomatically = saveConfigAutomatically;
 
     this.codecs = RegisteredCodecs.defaults();
     this.options = NodeOptions.builder()
         .placeholders(placeholders)
+        .validations(validations)
         .build();
   }
 
@@ -78,7 +78,7 @@ public class ConfigUtilities {
     return createAndMapOrUpdateAndMap(mapTo);
   }
 
-  @SuppressWarnings({"ConstantConditions", "unchecked"})
+  @SuppressWarnings("ConstantConditions")
   public <T> T createAndMapOrUpdateAndMap(Class<T> mapTo) throws Throwable {
     AnnotatedType configClass = GenericTypeReflector.annotate(mapTo);
     Map<String, Object> currentConfig = currentConfig();
@@ -97,7 +97,7 @@ public class ConfigUtilities {
     }
 
     NodeContext context = new RootNodeContext(codecs, options, configClass);
-    T config = (T) context.codec().deserialize(configClass, currentConfig, context);
+    T config = new ConfigLoader().load(context, currentConfig, postInitializeCallbackArgument);
 
     if (context.changed()) {
       saveConfig(config, context);
@@ -228,9 +228,6 @@ public class ConfigUtilities {
 
     @NonNull
     public ConfigUtilities build() {
-      Validations notNullValidations =
-          validations != null ? validations : Validations.builder().build();
-
       return new ConfigUtilities(
           fileCodec,
           configFile,
@@ -238,7 +235,7 @@ public class ConfigUtilities {
           changes,
           copyDirectly,
           placeholders,
-          notNullValidations,
+          validations,
           postInitializeCallbackArgument,
           saveConfigAutomatically
       );

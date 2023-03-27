@@ -6,6 +6,8 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.configutils.exception.ImproperConfigValueException;
+import org.geysermc.configutils.loader.validate.ValidationResult;
 import org.geysermc.configutils.node.codec.strategy.object.ObjectEmbodimentStrategy;
 import org.geysermc.configutils.node.codec.strategy.object.ObjectResolveStrategy;
 import org.geysermc.configutils.node.codec.strategy.object.ProxyEmbodimentStrategy;
@@ -56,7 +58,28 @@ public final class ObjectCodec extends TypeCodec<Object> {
           throwable.printStackTrace();
         }
       }
-      validEntries.put(node.key(), node.meta().applyMeta(value));
+
+      value = node.meta().applyMeta(value);
+
+      try {
+        ValidationResult result = node.options().validations().validate(node.fullKey(), value);
+        if (result.error() != null) {
+          result.error().messagePrefix(String.format(
+              "Config node %s does not meet the criteria", node.fullKey()
+          ));
+          throw result.error();
+        }
+        value = result.value();
+      } catch (ImproperConfigValueException exception) {
+        throw exception;
+      } catch (Exception exception) {
+        throw new IllegalStateException(
+            "An unknown error happened while validating " + node.fullKey(),
+            exception
+        );
+      }
+
+      validEntries.put(node.key(), value);
     }
     return embodimentStrategy.embody(type, validEntries);
   }

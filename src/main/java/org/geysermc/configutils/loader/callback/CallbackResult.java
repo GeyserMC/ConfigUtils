@@ -2,8 +2,8 @@ package org.geysermc.configutils.loader.callback;
 
 import java.util.Objects;
 import java.util.concurrent.Callable;
+import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
 
 public class CallbackResult {
   private final IllegalStateException error;
@@ -23,7 +23,7 @@ public class CallbackResult {
     return new CallbackResult(new IllegalStateException(errorMessage));
   }
 
-  @Nullable
+  @MonotonicNonNull
   public IllegalStateException error() {
     return error;
   }

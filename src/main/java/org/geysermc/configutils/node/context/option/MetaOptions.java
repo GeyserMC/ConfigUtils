@@ -15,6 +15,7 @@ import org.geysermc.configutils.node.meta.Defaults.DefaultBoolean;
 import org.geysermc.configutils.node.meta.Defaults.DefaultDecimal;
 import org.geysermc.configutils.node.meta.Defaults.DefaultNumeric;
 import org.geysermc.configutils.node.meta.Defaults.DefaultString;
+import org.geysermc.configutils.node.meta.Exclude;
 import org.geysermc.configutils.node.meta.Placeholder;
 import org.geysermc.configutils.node.meta.Range;
 
@@ -171,5 +172,9 @@ public class MetaOptions {
     }
 
     return deserialized;
+  }
+
+  public boolean isExcluded() {
+    return annotation(Exclude.class) != null;
   }
 }

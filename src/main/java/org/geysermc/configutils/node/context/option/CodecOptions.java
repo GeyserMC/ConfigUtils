@@ -4,7 +4,7 @@ import java.util.Objects;
 import java.util.function.Function;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.geysermc.configutils.util.Utils;
+import org.geysermc.configutils.util.CaseUtils;
 
 public final class CodecOptions {
   private final Function<String, String> nameEncoder;
@@ -78,9 +78,9 @@ public final class CodecOptions {
 
     public CodecOptions build() {
       return new CodecOptions(
-          nameEncoder != null ? nameEncoder : Utils::camelCaseToKebabCase,
-          enumDecoder != null ? enumDecoder : Utils::kebabCaseToConstantCase,
-          enumEncoder != null ? enumEncoder : Utils::constantCaseToKebabCase
+          nameEncoder != null ? nameEncoder : CaseUtils::camelCaseToKebabCase,
+          enumDecoder != null ? enumDecoder : CaseUtils::kebabCaseToConstantCase,
+          enumEncoder != null ? enumEncoder : CaseUtils::constantCaseToKebabCase
       );
     }
   }

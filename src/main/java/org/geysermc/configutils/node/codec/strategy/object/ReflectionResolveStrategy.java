@@ -6,7 +6,6 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import org.geysermc.configutils.node.codec.type.TypeCodec;
 import org.geysermc.configutils.node.context.NodeContext;
 
 public final class ReflectionResolveStrategy implements ObjectResolveStrategy {
@@ -15,7 +14,7 @@ public final class ReflectionResolveStrategy implements ObjectResolveStrategy {
     Class<?> clazz = GenericTypeReflector.erase(type.getType());
     List<NodeContext> mappings = new ArrayList<>();
     for (Method method : clazz.getMethods()) {
-      if (method.getParameterCount() != 0) {
+      if (method.getParameterCount() != 0 || method.isDefault()) {
         continue;
       }
 
@@ -24,12 +23,12 @@ public final class ReflectionResolveStrategy implements ObjectResolveStrategy {
       AnnotatedType returnType = GenericTypeReflector.getReturnType(method, type);
       returnType = GenericTypeReflector.updateAnnotations(returnType, method.getAnnotations());
 
-      TypeCodec<?> codec = context.codecFor(returnType);
-      if (codec == null) {
-        throw new IllegalStateException("No codec registered for type " + returnType);
+      NodeContext childContext = context.createChildContext(returnType, method.getName());
+      if (childContext.meta().isExcluded()) {
+        continue;
       }
 
-      mappings.add(context.createChildContext(returnType, method.getName()));
+      mappings.add(childContext);
     }
     return Collections.unmodifiableList(mappings);
   }

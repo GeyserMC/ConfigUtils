@@ -1,8 +1,8 @@
 package org.geysermc.configutils.loader.validate;
 
 import java.util.Objects;
+import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.configutils.exception.ImproperConfigValueException;
 
 public class ValidationResult {
@@ -25,12 +25,12 @@ public class ValidationResult {
     return new ValidationResult(new ImproperConfigValueException(errorMessage), null);
   }
 
-  @Nullable
+  @MonotonicNonNull
   public ImproperConfigValueException error() {
     return error;
   }
 
-  @Nullable
+  @MonotonicNonNull
   public Object value() {
     return value;
   }

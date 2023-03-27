@@ -1,12 +1,14 @@
 package org.geysermc.configutils.node.codec.strategy.object;
 
 import io.leangen.geantyref.GenericTypeReflector;
+import java.lang.invoke.MethodHandle;
 import java.lang.reflect.AnnotatedType;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.lang.reflect.Type;
 import java.util.Map;
+import org.geysermc.configutils.util.ReflectionUtils;
 
 public final class ProxyEmbodimentStrategy implements ObjectEmbodimentStrategy {
   @Override
@@ -64,9 +66,21 @@ public final class ProxyEmbodimentStrategy implements ObjectEmbodimentStrategy {
         return GenericTypeReflector.getTypeName(proxiedType) + '@' + content.hashCode();
       }
 
+      //todo add Configuration / DataHolder class
+      // which allows config values to be changed
+
       if (method.getParameterCount() == 0) {
         return content.get(method.getName());
       }
+
+      if (method.isDefault()) {
+        MethodHandle handle = ReflectionUtils.handleFor(method, proxy);
+        if (args == null || args.length == 0) {
+          return handle.invoke();
+        }
+        return handle.invokeWithArguments(args);
+      }
+
       throw new NoSuchMethodException();
     }
 
