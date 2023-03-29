@@ -1,7 +1,6 @@
 package org.geysermc.configutils;
 
 import io.leangen.geantyref.GenericTypeReflector;
-import java.io.Reader;
 import java.lang.reflect.AnnotatedType;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -12,6 +11,7 @@ import java.util.function.Supplier;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.configutils.file.codec.FileCodec;
+import org.geysermc.configutils.format.yaml.YamlCodec;
 import org.geysermc.configutils.loader.ConfigLoader;
 import org.geysermc.configutils.loader.validate.Validations;
 import org.geysermc.configutils.node.codec.RegisteredCodecs;
@@ -22,9 +22,6 @@ import org.geysermc.configutils.parser.placeholder.Placeholders;
 import org.geysermc.configutils.updater.ConfigUpdater;
 import org.geysermc.configutils.updater.change.Changes;
 import org.geysermc.configutils.updater.file.ConfigFileUpdaterResult;
-import org.yaml.snakeyaml.DumperOptions;
-import org.yaml.snakeyaml.DumperOptions.FlowStyle;
-import org.yaml.snakeyaml.Yaml;
 
 public class ConfigUtilities {
   private final FileCodec fileCodec;
@@ -44,7 +41,7 @@ public class ConfigUtilities {
       @NonNull String configVersionName,
       @Nullable Changes changes,
       @NonNull Set<String> copyDirectly,
-      @NonNull Placeholders placeholders,
+      @Nullable Placeholders placeholders,
       @Nullable Validations validations,
       @Nullable Object postInitializeCallbackArgument,
       boolean saveConfigAutomatically
@@ -54,7 +51,6 @@ public class ConfigUtilities {
     this.configVersionName = Objects.requireNonNull(configVersionName);
     this.changes = changes != null ? changes : Changes.builder().build();
     this.copyDirectly = Objects.requireNonNull(copyDirectly);
-    Objects.requireNonNull(placeholders);
     this.postInitializeCallbackArgument = postInitializeCallbackArgument;
     this.saveConfigAutomatically = saveConfigAutomatically;
 
@@ -81,7 +77,7 @@ public class ConfigUtilities {
   @SuppressWarnings("ConstantConditions")
   public <T> T createAndMapOrUpdateAndMap(Class<T> mapTo) throws Throwable {
     AnnotatedType configClass = GenericTypeReflector.annotate(mapTo);
-    Map<String, Object> currentConfig = currentConfig();
+    Map<?, ?> currentConfig = currentConfig();
 
     if (currentConfig == null) {
       currentConfig = new HashMap<>();
@@ -105,7 +101,7 @@ public class ConfigUtilities {
     return config;
   }
 
-  private ConfigFileUpdaterResult update0(AnnotatedType configClass, Map<String, ?> currentConfig) {
+  private ConfigFileUpdaterResult update0(AnnotatedType configClass, Map<?, ?> currentConfig) {
     NodeContext context = new RootNodeContext(codecs, options, configClass);
 
     ConfigFileUpdaterResult result =
@@ -121,8 +117,8 @@ public class ConfigUtilities {
   @SuppressWarnings("unchecked")
   private void saveConfig(Object config, NodeContext context) {
     if (saveConfigAutomatically) {
-      Map<String, Object> encodedConfig =
-          (Map<String, Object>) context.codec().serialize(context.type(), config, context);
+      Map<Object, Object> encodedConfig =
+          (Map<Object, Object>) context.codec().serialize(context.type(), config, context);
 
       encodedConfig.put(configVersionName, context.configVersion());
 
@@ -131,18 +127,18 @@ public class ConfigUtilities {
   }
 
   // make sure that if you call this, the config version field has been added
-  private void saveConfig(Map<String, Object> config) {
+  private void saveConfig(Map<Object, Object> config) {
     if (saveConfigAutomatically) {
-      DumperOptions dumperOptions = new DumperOptions();
-      dumperOptions.setDefaultFlowStyle(FlowStyle.BLOCK);
-      String file = new Yaml(dumperOptions).dump(config);
-      fileCodec.write(configFile, file);
+      fileCodec.write(configFile, new YamlCodec().encode(config));
     }
   }
 
   private Map<String, Object> currentConfig() {
-    Reader reader = fileCodec.read(configFile);
-    return reader != null ? new Yaml().load(reader) : null;
+    String content = fileCodec.read(configFile);
+    if (content == null) {
+      return null;
+    }
+    return new YamlCodec().decode(content);
   }
 
   public static final class Builder {

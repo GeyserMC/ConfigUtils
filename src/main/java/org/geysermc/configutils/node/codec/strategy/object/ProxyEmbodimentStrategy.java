@@ -70,7 +70,10 @@ public final class ProxyEmbodimentStrategy implements ObjectEmbodimentStrategy {
       // which allows config values to be changed
 
       if (method.getParameterCount() == 0) {
-        return content.get(method.getName());
+        Object value = content.get(method.getName());
+        if (value != null) {
+          return value;
+        }
       }
 
       if (method.isDefault()) {

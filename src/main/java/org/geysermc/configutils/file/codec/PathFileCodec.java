@@ -1,6 +1,5 @@
 package org.geysermc.configutils.file.codec;
 
-import java.io.BufferedReader;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -31,7 +30,7 @@ public final class PathFileCodec implements FileCodec {
   }
 
   @Override
-  public BufferedReader read(String file) {
+  public String read(String file) {
     return FileUtils.readPath(path(file));
   }
 

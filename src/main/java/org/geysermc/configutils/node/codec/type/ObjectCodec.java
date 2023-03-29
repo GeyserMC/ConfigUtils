@@ -13,6 +13,7 @@ import org.geysermc.configutils.node.codec.strategy.object.ObjectResolveStrategy
 import org.geysermc.configutils.node.codec.strategy.object.ProxyEmbodimentStrategy;
 import org.geysermc.configutils.node.codec.strategy.object.ReflectionResolveStrategy;
 import org.geysermc.configutils.node.context.NodeContext;
+import org.geysermc.configutils.node.util.NodeWithComment;
 
 public final class ObjectCodec extends TypeCodec<Object> {
   public static final ObjectCodec REFLECTION_PROXY_INSTANCE =
@@ -87,13 +88,17 @@ public final class ObjectCodec extends TypeCodec<Object> {
   @Override
   public Object serialize(AnnotatedType type, Object inputValue, NodeContext pContext) {
     Map<String, Object> validEntries = embodimentStrategy.disembody(inputValue);
-    Map<String, Object> mappings = new LinkedHashMap<>();
+    Map<Object, Object> mappings = new LinkedHashMap<>();
     for (NodeContext node : resolveStrategy.resolve(type, pContext)) {
+      Object key = node.options().codec().nameEncoder().apply(node.key());
+
+      String comment = node.meta().comment();
+      if (comment != null) {
+        key = new NodeWithComment(key, comment);
+      }
+
       Object value = node.meta().applyMeta(validEntries.get(node.key()));
-      mappings.put(
-          node.options().codec().nameEncoder().apply(node.key()),
-          node.codec().serialize(node.type(), value, node)
-      );
+      mappings.put(key, node.codec().serialize(node.type(), value, node));
     }
     return mappings;
   }

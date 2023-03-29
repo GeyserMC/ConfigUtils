@@ -13,7 +13,7 @@ public class ConfigLoader {
   @SuppressWarnings("unchecked")
   public <T> T load(
       @NonNull NodeContext context,
-      @NonNull Map<String, Object> data,
+      @NonNull Map<?, ?> data,
       @Nullable Object callbackArgument
   ) {
     T config = (T) context.codec().deserialize(context.type(), data, context);

@@ -5,13 +5,13 @@ import java.util.Set;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 public class ConfigFileUpdaterResult {
-  private final Map<String, Object> config;
+  private final Map<Object, Object> config;
   private final Set<String> notMapped;
 
   private final Throwable error;
 
   private ConfigFileUpdaterResult(
-      Map<String, Object> config,
+      Map<Object, Object> config,
       Set<String> notMapped,
       Throwable error
   ) {
@@ -20,7 +20,7 @@ public class ConfigFileUpdaterResult {
     this.error = error;
   }
 
-  public static ConfigFileUpdaterResult ok(Map<String, Object> config, Set<String> notMapped) {
+  public static ConfigFileUpdaterResult ok(Map<Object, Object> config, Set<String> notMapped) {
     return new ConfigFileUpdaterResult(config, notMapped, null);
   }
 
@@ -33,7 +33,7 @@ public class ConfigFileUpdaterResult {
   }
 
   @Nullable
-  public Map<String, Object> config() {
+  public Map<Object, Object> config() {
     return config;
   }
 

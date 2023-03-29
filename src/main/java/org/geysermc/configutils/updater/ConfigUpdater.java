@@ -18,7 +18,7 @@ import org.geysermc.configutils.updater.file.ConfigFileUpdaterResult;
 public class ConfigUpdater {
   public ConfigFileUpdaterResult update(
       NodeContext context,
-      Map<String, ?> currentConfig,
+      Map<?, ?> currentConfig,
       String configVersionName,
       Changes changes,
       Collection<String> copyDirectly
@@ -32,7 +32,7 @@ public class ConfigUpdater {
 
   private ConfigFileUpdaterResult update0(
       NodeContext context,
-      Map<String, ?> currentConfig,
+      Map<?, ?> currentConfig,
       String configVersionName,
       Changes changes,
       Collection<String> copyDirectly
@@ -81,7 +81,7 @@ public class ConfigUpdater {
         ((ObjectCodec) context.codecs().get(Object.class)).resolveStrategy();
 
     Set<String> notFound = new HashSet<>();
-    Map<String, Object> result = update(
+    Map<Object, Object> result = update(
         resolveStrategy,
         resolveStrategy.resolve(context.type(), context),
         currentConfig,
@@ -96,15 +96,15 @@ public class ConfigUpdater {
     return ConfigFileUpdaterResult.ok(result, notFound);
   }
 
-  private Map<String, Object> update(
+  private Map<Object, Object> update(
       ObjectResolveStrategy resolveStrategy,
       List<NodeContext> latestConfig,
-      Map<String, ?> currentConfig,
+      Map<?, ?> currentConfig,
       Changes changes,
       Collection<String> copyDirectly,
       Set<String> notFound
   ) {
-    Map<String, Object> converted = new HashMap<>();
+    Map<Object, Object> converted = new HashMap<>();
     for (NodeContext node : latestConfig) {
       String fullKey = node.fullKey();
 
@@ -141,11 +141,11 @@ public class ConfigUpdater {
   }
 
   @SuppressWarnings("unchecked")
-  private Object currentValue(Map<String, ?> currentConfig, String fullKey) {
-    Map<String, ?> curSubcategory = currentConfig;
+  private Object currentValue(Map<?, ?> currentConfig, String fullKey) {
+    Map<?, ?> curSubcategory = currentConfig;
     String[] parts = fullKey.split("\\.");
     for (int i = 0; i < parts.length - 1; i++) {
-      curSubcategory = (Map<String, ?>) curSubcategory.get(parts[i]);
+      curSubcategory = (Map<Object, ?>) curSubcategory.get(parts[i]);
       // can be null if the category doesn't exist in the current version
       if (curSubcategory == null) {
         return null;
