@@ -13,6 +13,7 @@ import org.geysermc.configutils.node.codec.strategy.object.ObjectResolveStrategy
 import org.geysermc.configutils.node.codec.strategy.object.ProxyEmbodimentStrategy;
 import org.geysermc.configutils.node.codec.strategy.object.ReflectionResolveStrategy;
 import org.geysermc.configutils.node.context.NodeContext;
+import org.geysermc.configutils.node.context.option.MetaOptions;
 import org.geysermc.configutils.node.util.NodeWithComment;
 
 public final class ObjectCodec extends TypeCodec<Object> {
@@ -34,7 +35,10 @@ public final class ObjectCodec extends TypeCodec<Object> {
   @Override
   public Object deserialize(AnnotatedType type, Object inputValue, NodeContext pContext) {
     if (!(inputValue instanceof Map<?, ?>)) {
-      throw new IllegalStateException("An object is serialized from a map");
+      throw new IllegalStateException(String.format(
+          "An object is serialized from a map, received %s (%s): %s",
+          inputValue.getClass().getName(), pContext.fullKey(), inputValue
+      ));
     }
     Map<?, ?> valueAsMap = (Map<?, ?>) inputValue;
 
@@ -91,13 +95,18 @@ public final class ObjectCodec extends TypeCodec<Object> {
     Map<Object, Object> mappings = new LinkedHashMap<>();
     for (NodeContext node : resolveStrategy.resolve(type, pContext)) {
       Object key = node.options().codec().nameEncoder().apply(node.key());
+      MetaOptions meta = node.meta();
 
-      String comment = node.meta().comment();
+      String comment = meta.comment();
       if (comment != null) {
         key = new NodeWithComment(key, comment);
       }
 
-      Object value = node.meta().applyMeta(validEntries.get(node.key()));
+      Object value = meta.applyMeta(validEntries.get(node.key()));
+      if (meta.isHidden() && meta.isDefaultOrPlaceholder(value)) {
+        continue;
+      }
+
       mappings.put(key, node.codec().serialize(node.type(), value, node));
     }
     return mappings;

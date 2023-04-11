@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
 import org.geysermc.configutils.node.codec.type.ArrayCodec;
+import org.geysermc.configutils.node.codec.type.BooleanCodec;
 import org.geysermc.configutils.node.codec.type.ByteCodec;
 import org.geysermc.configutils.node.codec.type.DoubleCodec;
 import org.geysermc.configutils.node.codec.type.EnumCodec;
@@ -28,6 +29,7 @@ public class RegisteredCodecs {
 
   static {
     DEFAULT = builder()
+        .registerPrimitive(BooleanCodec.INSTANCE)
         .registerPrimitive(ByteCodec.INSTANCE)
         .registerPrimitive(ShortCodec.INSTANCE)
         .registerPrimitive(IntegerCodec.INSTANCE)

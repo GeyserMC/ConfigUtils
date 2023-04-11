@@ -10,6 +10,6 @@ import java.lang.annotation.Target;
  * for default methods.
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE_USE)
+@Target({ElementType.TYPE, ElementType.METHOD})
 public @interface Exclude {
 }

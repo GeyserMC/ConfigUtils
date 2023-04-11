@@ -1,12 +1,14 @@
 package org.geysermc.configutils.node.codec.strategy.object;
 
 import io.leangen.geantyref.GenericTypeReflector;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedType;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import org.geysermc.configutils.node.context.NodeContext;
+import org.geysermc.configutils.util.ReflectionUtils;
 
 public final class ReflectionResolveStrategy implements ObjectResolveStrategy {
   @Override
@@ -22,6 +24,12 @@ public final class ReflectionResolveStrategy implements ObjectResolveStrategy {
       // get the annotations of the return type
       AnnotatedType returnType = GenericTypeReflector.getReturnType(method, type);
       returnType = GenericTypeReflector.updateAnnotations(returnType, method.getAnnotations());
+
+      // add inherited annotations
+      Annotation[] inherited = ReflectionUtils.findInheritedAnnotations(method);
+      if (inherited.length > 0) {
+        returnType = GenericTypeReflector.updateAnnotations(returnType, inherited);
+      }
 
       NodeContext childContext = context.createChildContext(returnType, method.getName());
       if (childContext.meta().isExcluded()) {

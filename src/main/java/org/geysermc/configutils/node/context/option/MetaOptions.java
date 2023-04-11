@@ -16,8 +16,10 @@ import org.geysermc.configutils.node.meta.Defaults.DefaultDecimal;
 import org.geysermc.configutils.node.meta.Defaults.DefaultNumeric;
 import org.geysermc.configutils.node.meta.Defaults.DefaultString;
 import org.geysermc.configutils.node.meta.Exclude;
+import org.geysermc.configutils.node.meta.Hidden;
 import org.geysermc.configutils.node.meta.Placeholder;
 import org.geysermc.configutils.node.meta.Range;
+import org.geysermc.configutils.util.ReflectionUtils;
 
 public class MetaOptions {
   private final NodeContext context;
@@ -140,6 +142,11 @@ public class MetaOptions {
     return annotation(DefaultOnFailure.class) != null;
   }
 
+  public boolean isDefaultOrPlaceholder(Object value) {
+    Object defaultValue = defaultValue();
+    return defaultValue != null && defaultValue.equals(value) || placeholder() != null;
+  }
+
   public Range range() {
     return Range.of(type());
   }
@@ -153,7 +160,7 @@ public class MetaOptions {
   }
 
   private <T extends Annotation> T annotation(Class<T> annotationType) {
-    return type().getAnnotation(annotationType);
+    return ReflectionUtils.findAnnotation(annotationType, type());
   }
 
   private TypeCodec<?> codec() {
@@ -176,5 +183,9 @@ public class MetaOptions {
 
   public boolean isExcluded() {
     return annotation(Exclude.class) != null;
+  }
+
+  public boolean isHidden() {
+    return annotation(Hidden.class) != null;
   }
 }

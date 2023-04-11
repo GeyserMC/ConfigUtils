@@ -7,6 +7,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.configutils.node.codec.RegisteredCodecs;
 import org.geysermc.configutils.node.context.option.NodeOptions;
 import org.geysermc.configutils.node.meta.ConfigVersion;
+import org.geysermc.configutils.util.ReflectionUtils;
 
 public final class RootNodeContext extends NodeContext {
   private final RegisteredCodecs registeredCodecs;
@@ -35,7 +36,7 @@ public final class RootNodeContext extends NodeContext {
 
   @Override
   public int configVersion() {
-    ConfigVersion version = type().getAnnotation(ConfigVersion.class);
+    ConfigVersion version = ReflectionUtils.findAnnotation(ConfigVersion.class, type());
     return version != null ? version.value() : 0;
   }
 
