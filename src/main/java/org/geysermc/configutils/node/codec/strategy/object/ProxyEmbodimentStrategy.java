@@ -66,9 +66,18 @@ public final class ProxyEmbodimentStrategy implements ObjectEmbodimentStrategy {
         return GenericTypeReflector.getTypeName(proxiedType) + '@' + content.hashCode();
       }
 
+      if (method.isDefault()) {
+        MethodHandle handle = ReflectionUtils.handleFor(method, proxy);
+        if (args == null || args.length == 0) {
+          return handle.invoke();
+        }
+        return handle.invokeWithArguments(args);
+      }
+
       //todo add Configuration / DataHolder class
       // which allows config values to be changed
 
+      // getters
       if (method.getParameterCount() == 0) {
         Object value = content.get(method.getName());
         if (value != null) {
@@ -76,12 +85,18 @@ public final class ProxyEmbodimentStrategy implements ObjectEmbodimentStrategy {
         }
       }
 
-      if (method.isDefault()) {
-        MethodHandle handle = ReflectionUtils.handleFor(method, proxy);
-        if (args == null || args.length == 0) {
-          return handle.invoke();
+      // setters
+      if (method.getParameterCount() == 1) {
+        Object current = content.get(method.getName());
+        if (current != null &&
+            !method.getParameterTypes()[0].isAssignableFrom(current.getClass())) {
+          throw new IllegalStateException(String.format(
+              "Cannot set %s to an incompatible type. From: %s, To: %s",
+              method.getName(), current.getClass(), method.getParameterTypes()[0]
+          ));
         }
-        return handle.invokeWithArguments(args);
+        Object result = content.put(method.getName(), args[0]);
+        return method.getReturnType() != Void.class ? result : null;
       }
 
       throw new NoSuchMethodException();
