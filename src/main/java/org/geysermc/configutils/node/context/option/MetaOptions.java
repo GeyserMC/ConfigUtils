@@ -64,7 +64,13 @@ public class MetaOptions {
 
   public @Nullable String comment() {
     Comment comment = annotation(Comment.class);
-    return comment != null ? comment.value() : null;
+    if (comment != null && !Comment.DEFAULT.equals(comment.value())) {
+      return comment.value();
+    }
+    if (comment != null || context.options().commentsEverywhere()) {
+      return context.fullKey();
+    }
+    return null;
   }
 
   public boolean isSection() {

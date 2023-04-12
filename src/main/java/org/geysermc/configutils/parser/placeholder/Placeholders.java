@@ -5,22 +5,18 @@ import java.util.Map;
 import java.util.function.Supplier;
 
 public final class Placeholders {
-  private final Map<String, Object> placeholders = new HashMap<>();
+  private final Map<String, Supplier<Object>> placeholders = new HashMap<>();
 
   public boolean addPlaceholder(String name, Supplier<Object> supplier) {
     return placeholders.put(name, supplier) != null;
   }
 
-  public boolean addPlaceholder(String name, Object value) {
-    return placeholders.put(name, value) != null;
-  }
-
   public Object placeholder(String name) {
-    Object placeholder = placeholders.get(name);
-    if (placeholder instanceof Supplier) {
-      return ((Supplier<?>) placeholder).get();
+    Supplier<?> placeholder = placeholders.get(name);
+    if (placeholder == null) {
+      return null;
     }
-    return placeholder;
+    return placeholder.get();
   }
 
   public boolean isPlaceholder(String name) {

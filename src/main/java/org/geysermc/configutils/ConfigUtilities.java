@@ -7,9 +7,11 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.checkerframework.common.returnsreceiver.qual.This;
 import org.geysermc.configutils.file.codec.FileCodec;
 import org.geysermc.configutils.format.yaml.YamlCodec;
 import org.geysermc.configutils.loader.ConfigLoader;
@@ -18,7 +20,6 @@ import org.geysermc.configutils.node.codec.RegisteredCodecs;
 import org.geysermc.configutils.node.context.NodeContext;
 import org.geysermc.configutils.node.context.RootNodeContext;
 import org.geysermc.configutils.node.context.option.NodeOptions;
-import org.geysermc.configutils.parser.placeholder.Placeholders;
 import org.geysermc.configutils.updater.ConfigUpdater;
 import org.geysermc.configutils.updater.change.Changes;
 import org.geysermc.configutils.updater.file.ConfigFileUpdaterResult;
@@ -41,8 +42,7 @@ public class ConfigUtilities {
       @NonNull String configVersionName,
       @Nullable Changes changes,
       @NonNull Set<String> copyDirectly,
-      @Nullable Placeholders placeholders,
-      @Nullable Validations validations,
+      @NonNull NodeOptions nodeOptions,
       @Nullable Object postInitializeCallbackArgument,
       boolean saveConfigAutomatically
   ) {
@@ -55,10 +55,7 @@ public class ConfigUtilities {
     this.saveConfigAutomatically = saveConfigAutomatically;
 
     this.codecs = RegisteredCodecs.defaults();
-    this.options = NodeOptions.builder()
-        .placeholders(placeholders)
-        .validations(validations)
-        .build();
+    this.options = nodeOptions;
   }
 
   public static Builder builder() {
@@ -142,14 +139,13 @@ public class ConfigUtilities {
   }
 
   public static final class Builder {
-    private final Placeholders placeholders = new Placeholders();
+    private final NodeOptions.Builder optionsBuilder = NodeOptions.builder();
     private final Set<String> copyDirectly = new HashSet<>();
 
     private FileCodec fileCodec;
     private String configFile;
     private String configVersionName = "config-version";
     private Changes changes;
-    private Validations validations;
     private Object postInitializeCallbackArgument;
 
     private boolean saveConfigAutomatically = true;
@@ -157,67 +153,64 @@ public class ConfigUtilities {
     private Builder() {
     }
 
-    @NonNull
-    public Builder fileCodec(@NonNull FileCodec fileCodec) {
+    public @This Builder fileCodec(@NonNull FileCodec fileCodec) {
       this.fileCodec = Objects.requireNonNull(fileCodec);
       return this;
     }
 
-    @NonNull
-    public Builder configFile(@NonNull String configFile) {
+    public @This Builder configFile(@NonNull String configFile) {
       this.configFile = Objects.requireNonNull(configFile);
       return this;
     }
 
-    @NonNull
-    public Builder configVersionName(@NonNull String configVersionName) {
+    public @This Builder configVersionName(@NonNull String configVersionName) {
       this.configVersionName = Objects.requireNonNull(configVersionName);
       return this;
     }
 
-    @NonNull
-    public Builder changes(@NonNull Changes changes) {
+    public @This Builder changes(@NonNull Changes changes) {
       this.changes = Objects.requireNonNull(changes);
       return this;
     }
 
-    @NonNull
-    public Builder copyDirectly(@NonNull String subcategory) {
+    public @This Builder copyDirectly(@NonNull String subcategory) {
       Objects.requireNonNull(subcategory);
       copyDirectly.add(subcategory);
       return this;
     }
 
-    @NonNull
-    public Builder definePlaceholder(@NonNull String name, @NonNull Supplier<Object> supplier) {
-      Objects.requireNonNull(name, "Placeholder name shouldn't be null");
-      Objects.requireNonNull(supplier, "Placeholder supplier shouldn't be null");
-      placeholders.addPlaceholder(name, supplier);
+    public @This Builder definePlaceholder(@NonNull String name, @NonNull Supplier<Object> supplier) {
+      optionsBuilder.definePlaceholder(name, supplier);
       return this;
     }
 
-    @NonNull
-    public Builder definePlaceholder(@NonNull String name, @NonNull Object replacement) {
-      Objects.requireNonNull(name, "Placeholder name shouldn't be null");
+    public @This Builder definePlaceholder(@NonNull String name, @NonNull Object replacement) {
       Objects.requireNonNull(replacement, "Placeholder replacement shouldn't be null");
-      placeholders.addPlaceholder(name, replacement);
+      optionsBuilder.definePlaceholder(name, () -> replacement);
       return this;
     }
 
-    @NonNull
-    public Builder validations(@NonNull Validations validations) {
-      this.validations = Objects.requireNonNull(validations);
+    public @This Builder validations(@NonNull Validations validations) {
+      optionsBuilder.validations(Objects.requireNonNull(validations));
       return this;
     }
 
-    @NonNull
-    public Builder postInitializeCallbackArgument(@Nullable Object callbackArgument) {
+    public @This Builder commentTranslator(@NonNull Function<String, String> commentTranslator) {
+      optionsBuilder.commentTranslator(Objects.requireNonNull(commentTranslator));
+      return this;
+    }
+
+    public @This Builder commentsEverywhere(boolean commentsEverywhere) {
+      optionsBuilder.commentsEverywhere(commentsEverywhere);
+      return this;
+    }
+
+    public @This Builder postInitializeCallbackArgument(@Nullable Object callbackArgument) {
       this.postInitializeCallbackArgument = callbackArgument;
       return this;
     }
 
-    @NonNull
-    public Builder saveConfigAutomatically(boolean saveConfigAutomatically) {
+    public @This Builder saveConfigAutomatically(boolean saveConfigAutomatically) {
       this.saveConfigAutomatically = saveConfigAutomatically;
       return this;
     }
@@ -230,8 +223,7 @@ public class ConfigUtilities {
           configVersionName,
           changes,
           copyDirectly,
-          placeholders,
-          validations,
+          optionsBuilder.build(),
           postInitializeCallbackArgument,
           saveConfigAutomatically
       );

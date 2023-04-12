@@ -99,7 +99,7 @@ public final class ObjectCodec extends TypeCodec<Object> {
 
       String comment = meta.comment();
       if (comment != null) {
-        key = new NodeWithComment(key, comment);
+        key = new NodeWithComment(key, node.options().commentTranslator().apply(comment));
       }
 
       Object value = meta.applyMeta(validEntries.get(node.key()));
