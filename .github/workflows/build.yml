@@ -17,6 +17,7 @@ jobs:
         uses: gradle/gradle-build-action@v2
         with:
           arguments: build
+          cache-read-only: ${{ github.ref_name != 'master' && github.ref_name != 'development' }}
 
       - name: Publish
         uses: gradle/gradle-build-action@v2
@@ -25,9 +26,10 @@ jobs:
           ORG_GRADLE_PROJECT_geysermcPassword: ${{ secrets.DEPLOY_PASS }}
         with:
           arguments: publish
+          cache-read-only: ${{ github.ref_name != 'master' && github.ref_name != 'development' }}
 
       - name: Notify Discord
+        if: ${{ (success() || failure()) }}
         uses: Tim203/actions-git-discord-webhook@main
         with:
           webhook_url: ${{ secrets.DISCORD_WEBHOOK }}
-          status: ${{ job.status }}

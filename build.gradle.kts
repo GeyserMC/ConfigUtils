@@ -35,8 +35,8 @@ subprojects {
             }
         }
 
-        publishSnapshotsTo("geysermc", "https://repo.opencollab.dev/artifactory/maven-snapshots")
-        publishReleasesTo("geysermc", "https://repo.opencollab.dev/artifactory/maven-releases")
+        publishSnapshotsTo("geysermc", "https://repo.opencollab.dev/maven-snapshots")
+        publishReleasesTo("geysermc", "https://repo.opencollab.dev/maven-releases")
     }
 }
 
