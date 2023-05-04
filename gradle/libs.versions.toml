@@ -13,3 +13,4 @@ junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "jun
 
 [plugins]
 indra = { id = "net.kyori.indra", version.ref = "indra" }
+indra-git = { id = "net.kyori.indra.git", version.ref = "indra" }
