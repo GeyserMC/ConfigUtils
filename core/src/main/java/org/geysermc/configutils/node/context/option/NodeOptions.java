@@ -7,6 +7,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.common.returnsreceiver.qual.This;
 import org.geysermc.configutils.loader.validate.Validations;
+import org.geysermc.configutils.node.context.meta.MetaCache;
 import org.geysermc.configutils.parser.placeholder.Placeholders;
 
 public class NodeOptions {
@@ -15,6 +16,7 @@ public class NodeOptions {
   private final Validations validations;
   private final Function<String, String> commentTranslator;
   private final boolean commentsEverywhere;
+  private final MetaCache metaCache;
 
   private NodeOptions(
       @NonNull CodecOptions codecOptions,
@@ -28,6 +30,7 @@ public class NodeOptions {
     this.validations = Objects.requireNonNull(validations);
     this.commentTranslator = Objects.requireNonNull(commentTranslator);
     this.commentsEverywhere = commentsEverywhere;
+    this.metaCache = new MetaCache();
   }
 
   public @NonNull CodecOptions codec() {
@@ -48,6 +51,10 @@ public class NodeOptions {
 
   public boolean commentsEverywhere() {
     return commentsEverywhere;
+  }
+
+  public @NonNull MetaCache metaCache() {
+    return metaCache;
   }
 
   public static NodeOptions defaults() {
